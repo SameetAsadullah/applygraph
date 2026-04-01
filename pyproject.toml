@@ -1,0 +1,55 @@
+[project]
+name = "agentic-job-copilot"
+version = "0.1.0"
+description = "Agentic Job Copilot - LangGraph-powered FastAPI backend for job application intelligence."
+authors = [{name = "Agentic Team"}]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.27.1",
+    "pydantic>=2.6.4",
+    "pydantic-settings>=2.2.1",
+    "sqlalchemy[asyncio]>=2.0.29",
+    "asyncpg>=0.29.0",
+    "pgvector>=0.2.4",
+    "alembic>=1.13.1",
+    "langgraph>=0.2.1",
+    "langchain>=0.1.14",
+    "langchain-openai>=0.1.8",
+    "opentelemetry-sdk>=1.24.0",
+    "opentelemetry-api>=1.24.0",
+    "opentelemetry-exporter-otlp>=1.24.0",
+    "opentelemetry-instrumentation-fastapi>=0.45b0",
+    "opentelemetry-instrumentation-asgi>=0.45b0",
+    "opentelemetry-instrumentation-httpx>=0.45b0",
+    "opentelemetry-instrumentation-asyncpg>=0.45b0",
+    "httpx>=0.26.0",
+    "tenacity>=8.2.3",
+    "python-dotenv>=1.0.1"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.1.1",
+    "pytest-asyncio>=0.23.5",
+    "pytest-cov>=5.0.0",
+    "anyio>=4.3.0",
+    "ruff>=0.3.4"
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "."}
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q"
+testpaths = ["tests"]
+asyncio_mode = "auto"
