@@ -1,0 +1,35 @@
+version: "3.9"
+services:
+  api:
+    build: .
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - otel-collector
+    ports:
+      - "8000:8000"
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+  db:
+    image: ankane/pgvector:latest
+    environment:
+      POSTGRES_USER: jobcopilot
+      POSTGRES_PASSWORD: jobcopilot
+      POSTGRES_DB: jobcopilot
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  otel-collector:
+    image: otel/opentelemetry-collector:0.94.0
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+
+volumes:
+  pgdata:
