@@ -20,7 +20,10 @@ class Settings(BaseSettings):
         alias="SYNC_DATABASE_URL",
     )
     openai_api_key: Optional[str] = Field(default=None, alias="OPENAI_API_KEY")
+    gemini_api_key: Optional[str] = Field(default=None, alias="GEMINI_API_KEY")
+    llm_provider: str = Field(default="openai", alias="LLM_PROVIDER")
     llm_model: str = Field(default="gpt-4.1-mini", alias="LLM_MODEL")
+    gemini_model: str = Field(default="gemini-pro", alias="GEMINI_MODEL")
     embedding_model: str = Field(default="text-embedding-3-small", alias="EMBEDDING_MODEL")
     otel_exporter_otlp_endpoint: Optional[str] = Field(
         default=None, alias="OTEL_EXPORTER_OTLP_ENDPOINT"
