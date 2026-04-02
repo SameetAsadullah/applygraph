@@ -58,6 +58,18 @@ Set `DATABASE_URL` to your Postgres instance (pgvector extension required). With
 ### 5. Telemetry
 Set `OTEL_EXPORTER_OTLP_ENDPOINT` to your collector (e.g., `http://otel-collector:4317`) to stream traces. Otherwise traces log to stdout via the console exporter.
 
+### 6. LLM provider configuration
+
+By default the service uses OpenAI (`LLM_PROVIDER=openai`). To switch to Gemini:
+
+1. Add the following to your `.env`:
+   ```
+   LLM_PROVIDER=gemini
+   GEMINI_API_KEY=your-key-here
+   GEMINI_MODEL=gemini-pro  # optional override
+   ```
+2. Restart the API. The runtime will route all LLM calls through the Gemini client; if no matching provider credentials exist the system falls back to the deterministic stub response used for tests/offline work.
+
 ## API Overview
 
 | Endpoint | Description |

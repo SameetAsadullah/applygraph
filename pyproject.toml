@@ -17,6 +17,7 @@ dependencies = [
     "langgraph>=0.2.1",
     "langchain>=0.1.14",
     "langchain-openai>=0.1.8",
+    "google-generativeai>=0.5.2",
     "opentelemetry-sdk>=1.24.0",
     "opentelemetry-api>=1.24.0",
     "opentelemetry-exporter-otlp>=1.24.0",
