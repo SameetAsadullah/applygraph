@@ -12,6 +12,7 @@ from app.schemas.api import MemorySnippet
 
 class RequestType(str, enum.Enum):
     CHAT = "chat"
+    REJECTED = "rejected"
     ANALYZE_JOB = "analyze_job"
     TAILOR_RESUME = "tailor_resume"
     DRAFT_MESSAGE = "draft_message"
@@ -31,6 +32,7 @@ class WorkflowState(TypedDict, total=False):
     memory_payload: dict[str, Any]
     chat_message: Optional[str]
     chat_plan: dict[str, Any]
+    guardrail_reason: Optional[str]
 
     db_session: AsyncSession
 

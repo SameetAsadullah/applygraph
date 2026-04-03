@@ -74,3 +74,15 @@ def test_chat_draft_message_flow(client: TestClient) -> None:
     assert data["request_type"] == "draft_message"
     assert "outreach_message" in data["output"]
     assert "email_version" in data["output"]
+
+
+def test_chat_guardrail_rejects_off_topic(client: TestClient) -> None:
+    payload = {
+        "user_id": str(uuid.uuid4()),
+        "message": "Tell me how to bake sourdough bread.",
+    }
+    response = client.post("/chat", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["request_type"] == "rejected"
+    assert "job" in data["output"]["message"].lower()
