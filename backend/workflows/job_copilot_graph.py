@@ -279,9 +279,6 @@ class WorkflowOrchestrator:
     def __init__(self, services: WorkflowServices) -> None:
         self._graph = build_workflow(services)
 
-    async def run(self, state: WorkflowState) -> WorkflowState:
-        return await self._graph.ainvoke(state)
-
     async def run_stream(self, state: WorkflowState) -> AsyncIterator[dict[str, Any]]:
         next_stage_index = 0
         if WORKFLOW_STAGE_ORDER:

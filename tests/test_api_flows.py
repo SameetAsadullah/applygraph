@@ -19,6 +19,19 @@ def _parse_sse_payloads(body: str) -> list[dict]:
     return events
 
 
+def _post_chat_stream(client: TestClient, payload: dict) -> list[dict]:
+    response = client.post("/chat/stream", json=payload)
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/event-stream")
+    return _parse_sse_payloads(response.text)
+
+
+def _final_stream_data(events: list[dict]) -> dict:
+    final_events = [event for event in events if event["type"] == "final"]
+    assert len(final_events) == 1
+    return final_events[0]["data"]
+
+
 @pytest.fixture(scope="module")
 def client() -> TestClient:
     app.dependency_overrides[deps.get_db_session] = lambda: None
@@ -37,9 +50,8 @@ def test_chat_analyze_job_flow(client: TestClient) -> None:
         "user_id": str(uuid.uuid4()),
         "message": message,
     }
-    response = client.post("/chat", json=payload)
-    assert response.status_code == 200
-    data = response.json()
+    events = _post_chat_stream(client, payload)
+    data = _final_stream_data(events)
     assert data["request_type"] == "analyze_job"
     assert "matched_skills" in data["output"]
     assert "resume_recommendations" in data["output"]
@@ -58,9 +70,8 @@ def test_chat_tailor_resume_flow(client: TestClient) -> None:
         "user_id": str(uuid.uuid4()),
         "message": message,
     }
-    response = client.post("/chat", json=payload)
-    assert response.status_code == 200
-    data = response.json()
+    events = _post_chat_stream(client, payload)
+    data = _final_stream_data(events)
     assert data["request_type"] == "tailor_resume"
     assert len(data["output"]["tailored_bullets"]) >= 1
     assert "rationale" in data["output"]
@@ -78,9 +89,8 @@ def test_chat_draft_message_flow(client: TestClient) -> None:
         "user_id": str(uuid.uuid4()),
         "message": message,
     }
-    response = client.post("/chat", json=payload)
-    assert response.status_code == 200
-    data = response.json()
+    events = _post_chat_stream(client, payload)
+    data = _final_stream_data(events)
     assert data["request_type"] == "draft_message"
     assert "outreach_message" in data["output"]
     assert "email_version" in data["output"]
@@ -91,9 +101,8 @@ def test_chat_guardrail_rejects_off_topic(client: TestClient) -> None:
         "user_id": str(uuid.uuid4()),
         "message": "Tell me how to bake sourdough bread.",
     }
-    response = client.post("/chat", json=payload)
-    assert response.status_code == 200
-    data = response.json()
+    events = _post_chat_stream(client, payload)
+    data = _final_stream_data(events)
     assert data["request_type"] == "rejected"
     assert "job" in data["output"]["message"].lower()
 
@@ -107,12 +116,8 @@ def test_chat_stream_emits_stage_events_and_final_payload(client: TestClient) ->
             "Profile: Built Python APIs and coached backend teams."
         ),
     }
-    response = client.post("/chat/stream", json=payload)
-    assert response.status_code == 200
-    assert response.headers["content-type"].startswith("text/event-stream")
-    events = _parse_sse_payloads(response.text)
+    events = _post_chat_stream(client, payload)
     assert any(event["type"] == "stage" and event["stage"] == "prepare_request" for event in events)
-    final_events = [event for event in events if event["type"] == "final"]
-    assert len(final_events) == 1
-    assert final_events[0]["data"]["request_type"] == "analyze_job"
-    assert "matched_skills" in final_events[0]["data"]["output"]
+    data = _final_stream_data(events)
+    assert data["request_type"] == "analyze_job"
+    assert "matched_skills" in data["output"]
