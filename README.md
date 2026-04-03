@@ -5,11 +5,11 @@ Agentic Job Copilot is a backend-first AI service that analyzes job descriptions
 ## Architecture
 
 - **FastAPI** for the HTTP surface with typed Pydantic schemas.
-- **LangGraph** orchestrates the business flow (`prepare_request → parse_input → classify_request → retrieve_memory → generate_output → review_output → persist_memory → return_result`).
+- **LangGraph** orchestrates the business flow (`prepare_request → parse_input → classify_request → retrieve_memory → generate_output → review_output → persist_memory → return_result`), including an intent router with guardrails that rejects off-topic prompts before they hit downstream tools.
 - **Tool layer** implements MCP-style tools for job parsing, profile reading, memory retrieval, and outreach drafting, keeping reusable logic outside workflow nodes.
 - **Services** encapsulate LLM interactions (with OpenAI or deterministic fallbacks) for job analysis, resume tailoring, outreach drafting, and semantic memory.
 - **PostgreSQL + pgvector** persist users, jobs, applications, memory chunks, and interaction runs. Dev startup auto-creates tables/extension when available.
-- **OpenTelemetry** instruments API requests, graph nodes, tool calls, DB work, and LLM completions; defaults to console exporter if OTLP endpoint is not set.
+- **OpenTelemetry** instruments API requests, graph nodes, tool calls, DB work, and LLM completions and emits custom metrics (workflow latency, LLM call stats, guardrail rejection counts). Prometheus + Grafana dashboards ship via docker-compose for local observability.
 - **Docker & docker-compose** provide a reproducible local stack (API + Postgres + OTEL collector).
 
 ```
@@ -98,6 +98,19 @@ Response
     "retrieved_memory": []
   }
 }
+
+### 7. Observability & Dashboards
+
+The stack exports traces and metrics via OTLP. Running `docker-compose up --build` now launches Prometheus (scraping the OTEL collector) and Grafana alongside the API, DB, and collector containers.
+
+1. Visit Grafana at [http://localhost:3000](http://localhost:3000) (default admin/admin). Add Prometheus as a data source using `http://prometheus:9090`.
+2. Import or build dashboards to track:
+   - `workflow_latency_ms` (p95 latency per workflow, labeled by `workflow`).
+   - `workflow_requests_total` and `guardrail_rejections_total` to monitor request mix vs. blocked prompts.
+   - `llm_latency_ms` / `llm_tokens_total` broken down by provider/model to understand token burn and upstream latency.
+3. Prometheus is available at [http://localhost:9090](http://localhost:9090) if you want to explore metrics directly. The OTEL collector also exposes raw metrics at `http://localhost:9464/metrics`.
+
+These dashboards make it easy to prove reliability (latency, errors), safety (guardrail hit rate), and cost awareness (token usage) when showcasing the project.
 ```
 
 ## Testing
