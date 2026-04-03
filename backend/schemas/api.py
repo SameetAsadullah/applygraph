@@ -41,11 +41,6 @@ class ChatRequest(BaseModel):
     message: str
 
 
-class ChatResponse(BaseModel):
-    request_type: str
-    output: dict[str, Any]
-
-
 class HealthResponse(BaseModel):
     status: str
     version: str

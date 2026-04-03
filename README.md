@@ -82,30 +82,21 @@ By default the service uses OpenAI (`LLM_PROVIDER=openai`). To switch to Gemini:
 | Endpoint | Description |
 | --- | --- |
 | `GET /health` | Service liveness |
-| `POST /chat` | Single entry point. Send a free-form prompt and the LLM router decides whether to analyze a job, tailor resume bullets, draft outreach, or save memory. Off-topic prompts are rejected with `request_type: "rejected"` and a short guardrail message. |
-| `POST /chat/stream` | SSE variant of the chat endpoint. Emits stage-level workflow events (`prepare_request`, `retrieve_memory`, `generate_output`, etc.) followed by the final response payload. |
+| `POST /chat/stream` | Streaming entry point. Send a free-form prompt and receive SSE stage events (`prepare_request`, `retrieve_memory`, `generate_output`, etc.) followed by the final payload. Off-topic prompts are rejected with `request_type: "rejected"` and a short guardrail message. |
 
-### Example: Unified Chat Call
+### Example: Streaming Chat Call
 ```bash
-curl -X POST http://localhost:8000/chat \
+curl -N -X POST http://localhost:8000/chat/stream \
   -H 'Content-Type: application/json' \
+  -H 'Accept: text/event-stream' \
   -d '{
         "user_id": "e1bb9e5c-6930-4f97-8a41-36c9348d8c44",
         "message": "Analyze this job for me.\nJob: Own FastAPI services and coach junior engineers.\nProfile: Led platform APIs at Contoso, mentoring 4 devs."
       }'
 ```
-Response
-```json
-{
-  "request_type": "analyze_job",
-  "output": {
-    "matched_skills": ["fastapi", "engineers"],
-    "missing_skills": ["coach"],
-    "fit_summary": "...",
-    "resume_recommendations": ["..."],
-    "retrieved_memory": []
-  }
-}
+Example final SSE event:
+```text
+data: {"type":"final","data":{"request_type":"analyze_job","output":{"matched_skills":["fastapi","engineers"],"missing_skills":["coach"],"fit_summary":"...","resume_recommendations":["..."],"retrieved_memory":[]}}}
 ```
 
 The Streamlit frontend builds this payload automatically after extracting text from the uploaded PDF and appending it to each user prompt.

@@ -14,10 +14,6 @@ class ResumeExtraction:
     char_count: int
 
 
-def extract_resume_text(file_bytes: bytes) -> str:
-    return extract_resume(file_bytes).text
-
-
 def extract_resume(file_bytes: bytes) -> ResumeExtraction:
     reader = PdfReader(io.BytesIO(file_bytes))
     pages: list[str] = []
