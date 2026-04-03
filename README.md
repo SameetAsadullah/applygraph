@@ -98,6 +98,7 @@ Response
     "retrieved_memory": []
   }
 }
+```
 
 ### 7. Observability & Dashboards
 
@@ -111,14 +112,11 @@ The stack exports traces and metrics via OTLP. Running `docker-compose up --buil
 3. Prometheus is available at [http://localhost:9090](http://localhost:9090) if you want to explore metrics directly. The OTEL collector also exposes raw metrics at `http://localhost:9464/metrics`.
 
 These dashboards make it easy to prove reliability (latency, errors), safety (guardrail hit rate), and cost awareness (token usage) when showcasing the project.
-```
-
 ## Testing
 ```
 pytest
 ```
 Tests rely on deterministic fallbacks and override DB dependencies, so they run without Postgres. Install dev extras first (`pip install -e .[dev]`).
-
 ## Future Improvements
 1. **LLM adapters** – add Anthropic / Azure OpenAI adapters and routing per use case (analysis vs generation vs critique).
 2. **Auth & tenancy** – integrate authentication + RBAC and scope memory per workspace/org.
