@@ -16,6 +16,9 @@ class ChatTurn:
 class ResumeContext:
     filename: str = ""
     text: str = ""
+    file_token: str = ""
+    page_count: int = 0
+    char_count: int = 0
 
 
 @dataclass

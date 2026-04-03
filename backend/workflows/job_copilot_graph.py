@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import time
-from typing import Any
+from typing import Any, AsyncIterator
 
 from langgraph.graph import END, StateGraph
 from opentelemetry import trace
@@ -25,6 +25,29 @@ from backend.telemetry.metrics import (
     record_workflow_latency,
 )
 from backend.workflows.state import RequestType, WorkflowState
+
+
+WORKFLOW_STAGE_ORDER = [
+    "prepare_request",
+    "parse_input",
+    "classify_request",
+    "retrieve_memory",
+    "generate_output",
+    "review_output",
+    "persist_memory",
+    "return_result",
+]
+
+WORKFLOW_STAGE_MESSAGES = {
+    "prepare_request": "Routing request",
+    "parse_input": "Parsing job and resume context",
+    "classify_request": "Confirming workflow",
+    "retrieve_memory": "Retrieving saved context",
+    "generate_output": "Generating response",
+    "review_output": "Checking output",
+    "persist_memory": "Saving memory",
+    "return_result": "Finalizing response",
+}
 
 
 @dataclass
@@ -258,3 +281,97 @@ class WorkflowOrchestrator:
 
     async def run(self, state: WorkflowState) -> WorkflowState:
         return await self._graph.ainvoke(state)
+
+    async def run_stream(self, state: WorkflowState) -> AsyncIterator[dict[str, Any]]:
+        next_stage_index = 0
+        if WORKFLOW_STAGE_ORDER:
+            first_stage = WORKFLOW_STAGE_ORDER[0]
+            yield self._stage_event(first_stage, "started")
+
+        async for chunk in self._graph.astream(state):
+            if not chunk:
+                continue
+            stage_name, payload = next(iter(chunk.items()))
+            yield self._stage_event(stage_name, "completed", payload)
+            next_stage_index += 1
+            if stage_name == "return_result":
+                final_state = payload if isinstance(payload, dict) else {}
+                output = final_state.get("output")
+                if output is None:
+                    raise ValueError("Chat workflow failed to produce output")
+                request_type = final_state.get("request_type", RequestType.CHAT)
+                request_type_value = (
+                    request_type.value if isinstance(request_type, RequestType) else str(request_type)
+                )
+                yield {
+                    "type": "final",
+                    "data": {
+                        "request_type": request_type_value,
+                        "output": output,
+                    },
+                }
+                break
+            if next_stage_index < len(WORKFLOW_STAGE_ORDER):
+                yield self._stage_event(WORKFLOW_STAGE_ORDER[next_stage_index], "started")
+
+    def _stage_event(
+        self,
+        stage_name: str,
+        status: str,
+        payload: Any | None = None,
+    ) -> dict[str, Any]:
+        event: dict[str, Any] = {
+            "type": "stage",
+            "stage": stage_name,
+            "status": status,
+            "message": WORKFLOW_STAGE_MESSAGES.get(stage_name, stage_name.replace("_", " ").title()),
+        }
+        if payload is not None:
+            meta = self._build_stage_meta(stage_name, payload)
+            if meta:
+                event["meta"] = meta
+        return event
+
+    def _build_stage_meta(self, stage_name: str, payload: Any) -> dict[str, Any]:
+        if not isinstance(payload, dict):
+            return {}
+
+        if stage_name == "prepare_request":
+            request_type = payload.get("request_type")
+            request_type_value = (
+                request_type.value if isinstance(request_type, RequestType) else request_type
+            )
+            meta: dict[str, Any] = {}
+            if request_type_value:
+                meta["request_type"] = request_type_value
+            if payload.get("guardrail_reason"):
+                meta["guardrail_reason"] = payload["guardrail_reason"]
+            return meta
+
+        if stage_name == "parse_input":
+            return {
+                "job_skill_count": len(payload.get("parsed_job", {}).get("skills", [])),
+                "profile_skill_count": len(payload.get("parsed_profile", {}).get("skills", [])),
+            }
+
+        if stage_name == "classify_request":
+            request_type = payload.get("request_type")
+            request_type_value = (
+                request_type.value if isinstance(request_type, RequestType) else request_type
+            )
+            return {"request_type": request_type_value} if request_type_value else {}
+
+        if stage_name == "retrieve_memory":
+            return {"memory_count": len(payload.get("retrieved_memory", []))}
+
+        if stage_name == "generate_output":
+            output = payload.get("output", {})
+            return {"keys": sorted(output.keys())}
+
+        if stage_name == "review_output":
+            return {"errors": payload.get("errors", [])} if payload.get("errors") else {}
+
+        if stage_name == "persist_memory":
+            return {"saved_memory_count": len(payload.get("saved_memory_ids", []))}
+
+        return {}

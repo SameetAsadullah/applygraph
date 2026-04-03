@@ -60,7 +60,7 @@ Run the API first, then start the Streamlit client in a second shell:
 ```bash
 streamlit run frontend/app.py
 ```
-The frontend opens a local chat-style UI. A user uploads a resume PDF in the sidebar, then uses the main chat input to paste a job description or ask for job-fit analysis. Each prompt is sent automatically to the local `POST /chat` backend with the extracted resume text attached as the candidate profile.
+The frontend opens a local chat-style UI. A user uploads a resume PDF in the sidebar, then uses the main chat input to paste a job description or ask for job-fit analysis. Each prompt is sent automatically to the local streaming backend, and the UI shows PDF extraction plus per-node workflow progress while the response is being generated.
 
 ### 5. Telemetry
 Set `OTEL_EXPORTER_OTLP_ENDPOINT` to your collector (e.g., `http://otel-collector:4317`) to stream traces. Otherwise traces log to stdout via the console exporter.
@@ -83,6 +83,7 @@ By default the service uses OpenAI (`LLM_PROVIDER=openai`). To switch to Gemini:
 | --- | --- |
 | `GET /health` | Service liveness |
 | `POST /chat` | Single entry point. Send a free-form prompt and the LLM router decides whether to analyze a job, tailor resume bullets, draft outreach, or save memory. Off-topic prompts are rejected with `request_type: "rejected"` and a short guardrail message. |
+| `POST /chat/stream` | SSE variant of the chat endpoint. Emits stage-level workflow events (`prepare_request`, `retrieve_memory`, `generate_output`, etc.) followed by the final response payload. |
 
 ### Example: Unified Chat Call
 ```bash
