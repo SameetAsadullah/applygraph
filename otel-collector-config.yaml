@@ -7,6 +7,9 @@ receivers:
 exporters:
   logging:
     verbosity: detailed
+  prometheus:
+    endpoint: "0.0.0.0:9464"
+    namespace: agentic_job_copilot
 
 service:
   pipelines:
@@ -15,7 +18,7 @@ service:
       exporters: [logging]
     metrics:
       receivers: [otlp]
-      exporters: [logging]
+      exporters: [logging, prometheus]
     logs:
       receivers: [otlp]
       exporters: [logging]

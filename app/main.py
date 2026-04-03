@@ -15,6 +15,7 @@ from app.services.llm import LLMService
 from app.services.memory import MemoryService
 from app.services.outreach import OutreachService
 from app.services.resume import ResumeTailorService
+from app.telemetry.metrics import setup_metrics
 from app.telemetry.tracing import setup_tracing
 from app.tools.job_parser import JobParserTool
 from app.tools.memory_retriever import MemoryRetrievalTool
@@ -48,6 +49,7 @@ def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(title="Agentic Job Copilot", version="0.1.0")
     setup_tracing(app, settings)
+    setup_metrics(settings)
 
     orchestrator = _build_orchestrator(settings)
     app.state.settings = settings

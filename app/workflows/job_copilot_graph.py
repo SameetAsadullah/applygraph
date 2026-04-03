@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import time
 from typing import Any
 
 from langgraph.graph import END, StateGraph
@@ -18,6 +19,11 @@ from app.tools.job_parser import JobParserTool
 from app.tools.memory_retriever import MemoryRetrievalTool
 from app.tools.outreach_drafter import OutreachDraftTool
 from app.tools.profile_reader import ProfileReaderTool
+from app.telemetry.metrics import (
+    increment_workflow_counter,
+    record_guardrail_rejection,
+    record_workflow_latency,
+)
 from app.workflows.state import RequestType, WorkflowState
 
 
@@ -39,17 +45,19 @@ def build_workflow(services: WorkflowServices):
     tracer = trace.get_tracer("agentic-job-copilot.workflow")
 
     async def prepare_request(state: WorkflowState) -> dict[str, Any]:
+        updates: dict[str, Any] = {
+            "workflow_started_at": time.perf_counter(),
+        }
         if state.get("request_type") != RequestType.CHAT:
-            return {}
+            return updates
         chat_message = state.get("chat_message") or ""
         plan = await services.chat_planner.plan(chat_message)
-        updates: dict[str, Any] = {
-            "chat_plan": plan.model_dump(),
-        }
+        updates["chat_plan"] = plan.model_dump()
         if not plan.allowed:
             reason = plan.rejection_reason or "I can only help with job application topics."
             updates["request_type"] = RequestType.REJECTED
             updates["guardrail_reason"] = reason
+            record_guardrail_rejection(reason)
             return updates
         updates["request_type"] = plan.request_type
         if plan.job_description is not None:
@@ -71,6 +79,9 @@ def build_workflow(services: WorkflowServices):
         return updates
 
     async def parse_input(state: WorkflowState) -> dict[str, Any]:
+        request_type = state.get("request_type")
+        if request_type == RequestType.REJECTED:
+            return {"parsed_job": {}, "parsed_profile": {}}
         job_description = state.get("job_description", "")
         profile_text = state.get("candidate_profile")
         parsed_job = await services.job_parser(job_description=job_description)
@@ -84,6 +95,9 @@ def build_workflow(services: WorkflowServices):
         return {"request_type": request_type}
 
     async def retrieve_memory(state: WorkflowState) -> dict[str, Any]:
+        request_type = state.get("request_type")
+        if request_type == RequestType.REJECTED:
+            return {"retrieved_memory": []}
         session = state.get("db_session")
         user_id = state.get("user_id")
         query = state.get("job_description") or state.get("candidate_profile") or ""
@@ -140,6 +154,9 @@ def build_workflow(services: WorkflowServices):
         return {}
 
     async def persist_memory(state: WorkflowState) -> dict[str, Any]:
+        request_type = state.get("request_type")
+        if request_type == RequestType.REJECTED:
+            return {"saved_memory_ids": state.get("saved_memory_ids", [])}
         session = state.get("db_session")
         user_id = state.get("user_id")
         saved_ids = list(state.get("saved_memory_ids", []))
@@ -203,6 +220,12 @@ def build_workflow(services: WorkflowServices):
     async def return_result(state: WorkflowState) -> dict[str, Any]:
         span = tracer.start_span("workflow.return_result")
         span.end()
+        request_type = state.get("request_type", RequestType.CHAT)
+        started_at = state.get("workflow_started_at")
+        if started_at:
+            duration_ms = (time.perf_counter() - started_at) * 1000
+            record_workflow_latency(request_type.value, duration_ms)
+        increment_workflow_counter(request_type.value)
         return state
 
     graph.add_node("prepare_request", prepare_request)

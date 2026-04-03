@@ -33,6 +33,7 @@ class WorkflowState(TypedDict, total=False):
     chat_message: Optional[str]
     chat_plan: dict[str, Any]
     guardrail_reason: Optional[str]
+    workflow_started_at: float
 
     db_session: AsyncSession
 

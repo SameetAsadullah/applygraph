@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import time
 from typing import Optional
 
 try:  # pragma: no cover - optional dependency guard
@@ -18,6 +19,7 @@ except ImportError:  # pragma: no cover
     genai = None
 
 from app.core.config import Settings
+from app.telemetry.metrics import record_llm_call
 from app.telemetry.tracing import get_tracer
 
 
@@ -57,14 +59,42 @@ class LLMService:
             span.set_attribute(
                 "llm.has_client", bool(self._client or self._gemini_model)
             )
-            if self._provider == "openai" and self._client and HumanMessage and SystemMessage:
-                response = await self._client.ainvoke(
-                    [SystemMessage(content=system_prompt), HumanMessage(content=user_prompt)]
+            start = time.perf_counter()
+            try:
+                if (
+                    self._provider == "openai"
+                    and self._client
+                    and HumanMessage
+                    and SystemMessage
+                ):
+                    response = await self._client.ainvoke(
+                        [SystemMessage(content=system_prompt), HumanMessage(content=user_prompt)]
+                    )
+                    content = (
+                        response.content
+                        if isinstance(response.content, str)
+                        else str(response.content)
+                    )
+                    tokens = self._extract_token_usage(response, system_prompt, user_prompt)
+                    self._record_llm_metrics(start, tokens=tokens)
+                    return content
+                if self._provider == "gemini" and self._gemini_model is not None:
+                    result = await self._generate_with_gemini(system_prompt, user_prompt)
+                    self._record_llm_metrics(
+                        start,
+                        tokens=self._estimate_tokens(system_prompt, user_prompt, result),
+                    )
+                    return result
+                fallback = self._fallback(system_prompt, user_prompt)
+                self._record_llm_metrics(
+                    start,
+                    tokens=self._estimate_tokens(system_prompt, user_prompt, fallback),
+                    status="fallback",
                 )
-                return response.content if isinstance(response.content, str) else str(response.content)
-            if self._provider == "gemini" and self._gemini_model is not None:
-                return await self._generate_with_gemini(system_prompt, user_prompt)
-            return self._fallback(system_prompt, user_prompt)
+                return fallback
+            except Exception:
+                self._record_llm_metrics(start, status="error")
+                raise
 
     async def _generate_with_gemini(self, system_prompt: str, user_prompt: str) -> str:
         """Invoke Gemini models without blocking the event loop."""
@@ -104,3 +134,46 @@ class LLMService:
             f"user: {preview}\n"
             "This environment is running in deterministic fallback mode."
         )
+
+    def _record_llm_metrics(
+        self,
+        start: float,
+        *,
+        tokens: Optional[int] = None,
+        status: str = "success",
+    ) -> None:
+        duration_ms = (time.perf_counter() - start) * 1000
+        record_llm_call(
+            self._provider,
+            self._model_name,
+            duration_ms,
+            tokens=tokens,
+            status=status,
+        )
+
+    def _extract_token_usage(
+        self,
+        response: object,
+        system_prompt: str,
+        user_prompt: str,
+    ) -> Optional[int]:
+        usage = getattr(response, "usage_metadata", None)
+        if isinstance(usage, dict):
+            total = usage.get("total_tokens")
+            if total is not None:
+                return int(total)
+            input_tokens = usage.get("input_tokens")
+            output_tokens = usage.get("output_tokens")
+            if input_tokens is not None and output_tokens is not None:
+                return int(input_tokens) + int(output_tokens)
+        return self._estimate_tokens(system_prompt, user_prompt, getattr(response, "content", ""))
+
+    def _estimate_tokens(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        output_text: str,
+    ) -> int:
+        # Rough heuristic: assume 4 characters per token
+        combined = system_prompt + user_prompt + (output_text or "")
+        return max(int(len(combined) / 4), 0)
