@@ -55,6 +55,13 @@ uvicorn app.main:app --reload
 ```
 Set `DATABASE_URL` to your Postgres instance (pgvector extension required). Without a reachable DB, memory persistence gracefully degrades and logs a warning.
 
+### 4.1 Streamlit frontend
+Run the API first, then start the Streamlit client in a second shell:
+```bash
+streamlit run frontend/app.py
+```
+The frontend opens a local chat-style UI. A user uploads a resume PDF in the sidebar, then uses the main chat input to paste a job description or ask for job-fit analysis. Each prompt is sent automatically to the local `POST /chat` backend with the extracted resume text attached as the candidate profile.
+
 ### 5. Telemetry
 Set `OTEL_EXPORTER_OTLP_ENDPOINT` to your collector (e.g., `http://otel-collector:4317`) to stream traces. Otherwise traces log to stdout via the console exporter.
 
@@ -99,6 +106,8 @@ Response
   }
 }
 ```
+
+The Streamlit frontend builds this payload automatically after extracting text from the uploaded PDF and appending it to each user prompt.
 
 ### 7. Observability & Dashboards
 
