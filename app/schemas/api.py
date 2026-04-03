@@ -16,13 +16,6 @@ class MemorySnippet(BaseModel):
     metadata: Optional[dict[str, Any]] = None
 
 
-class JobAnalysisRequest(BaseModel):
-    user_id: Optional[uuid.UUID] = Field(default=None, description="Known user id for personalization")
-    job_description: str
-    company_name: Optional[str] = None
-    candidate_profile: Optional[str] = None
-
-
 class JobAnalysisResponse(BaseModel):
     matched_skills: list[str]
     missing_skills: list[str]
@@ -31,26 +24,10 @@ class JobAnalysisResponse(BaseModel):
     retrieved_memory: list[MemorySnippet] = Field(default_factory=list)
 
 
-class ResumeTailorRequest(BaseModel):
-    user_id: Optional[uuid.UUID] = None
-    job_description: str
-    resume_bullets: list[str]
-    candidate_profile: Optional[str] = None
-
-
 class ResumeTailorResponse(BaseModel):
     tailored_bullets: list[str]
     rationale: str
     retrieved_memory: list[MemorySnippet] = Field(default_factory=list)
-
-
-class DraftMessageRequest(BaseModel):
-    user_id: Optional[uuid.UUID] = None
-    company: str
-    role: str
-    hiring_manager_name: Optional[str] = None
-    candidate_profile: str
-    tone: str = Field(default="warm")
 
 
 class DraftMessageResponse(BaseModel):
@@ -59,16 +36,14 @@ class DraftMessageResponse(BaseModel):
     retrieved_memory: list[MemorySnippet] = Field(default_factory=list)
 
 
-class MemorySaveRequest(BaseModel):
-    user_id: uuid.UUID
-    memory_type: MemoryType
-    content: str
-    metadata: Optional[dict[str, Any]] = None
+class ChatRequest(BaseModel):
+    user_id: Optional[uuid.UUID] = None
+    message: str
 
 
-class MemorySaveResponse(BaseModel):
-    status: str
-    memory_id: uuid.UUID
+class ChatResponse(BaseModel):
+    request_type: str
+    output: dict[str, Any]
 
 
 class HealthResponse(BaseModel):

@@ -5,10 +5,11 @@ import logging
 
 from fastapi import FastAPI
 
-from app.api.routes import analyze_job, draft_message, health, memory, tailor_resume
+from app.api.routes import chat, health
 from app.core.config import Settings, get_settings
 from app.db.session import init_db
 from app.deps.embeddings import EmbeddingClient
+from app.services.chat_planner import ChatPlannerService
 from app.services.job_analysis import JobAnalysisService
 from app.services.llm import LLMService
 from app.services.memory import MemoryService
@@ -27,6 +28,7 @@ def _build_orchestrator(settings: Settings) -> WorkflowOrchestrator:
     memory_service = MemoryService(embeddings)
     llm_service = LLMService(settings)
     services = WorkflowServices(
+        chat_planner=ChatPlannerService(llm_service),
         job_parser=JobParserTool(),
         profile_reader=ProfileReaderTool(),
         memory_retriever=MemoryRetrievalTool(memory_service),
@@ -59,10 +61,7 @@ def create_app() -> FastAPI:
             logger.warning("Skipping DB init due to error: %s", exc)
 
     app.include_router(health.router)
-    app.include_router(analyze_job.router)
-    app.include_router(tailor_resume.router)
-    app.include_router(draft_message.router)
-    app.include_router(memory.router)
+    app.include_router(chat.router)
 
     return app
 

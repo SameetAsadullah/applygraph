@@ -17,46 +17,60 @@ def client() -> TestClient:
     app.dependency_overrides.clear()
 
 
-def test_analyze_job_flow(client: TestClient) -> None:
+def test_chat_analyze_job_flow(client: TestClient) -> None:
+    message = (
+        "Analyze this job for me.\n"
+        "Job: We need a Python engineer with FastAPI and SQL skills.\n"
+        "Profile: Experienced backend dev skilled in FastAPI and async Python."
+    )
     payload = {
         "user_id": str(uuid.uuid4()),
-        "job_description": "We need a Python engineer with FastAPI and SQL skills.",
-        "candidate_profile": "Experienced backend dev skilled in FastAPI and async Python.",
+        "message": message,
     }
-    response = client.post("/analyze-job", json=payload)
+    response = client.post("/chat", json=payload)
     assert response.status_code == 200
     data = response.json()
-    assert "matched_skills" in data
-    assert "resume_recommendations" in data
+    assert data["request_type"] == "analyze_job"
+    assert "matched_skills" in data["output"]
+    assert "resume_recommendations" in data["output"]
 
 
-def test_tailor_resume_flow(client: TestClient) -> None:
+def test_chat_tailor_resume_flow(client: TestClient) -> None:
+    message = (
+        "Please tailor my resume.\n"
+        "Job: Looking for someone to build APIs and mentor engineers.\n"
+        "Bullets:\n"
+        "- Built APIs in Python\n"
+        "- Improved team velocity by 20%\n"
+        "Profile: Led platform team shipping APIs."
+    )
     payload = {
         "user_id": str(uuid.uuid4()),
-        "job_description": "Looking for someone to build APIs and mentor engineers.",
-        "resume_bullets": [
-            "Built APIs in Python",
-            "Improved team velocity by 20%",
-        ],
-        "candidate_profile": "Led platform team shipping APIs.",
+        "message": message,
     }
-    response = client.post("/tailor-resume", json=payload)
+    response = client.post("/chat", json=payload)
     assert response.status_code == 200
     data = response.json()
-    assert len(data["tailored_bullets"]) >= 1
-    assert "rationale" in data
+    assert data["request_type"] == "tailor_resume"
+    assert len(data["output"]["tailored_bullets"]) >= 1
+    assert "rationale" in data["output"]
 
 
-def test_draft_message_flow(client: TestClient) -> None:
+def test_chat_draft_message_flow(client: TestClient) -> None:
+    message = (
+        "Draft an outreach message.\n"
+        "Company: Acme Corp\n"
+        "Role: Senior Backend Engineer\n"
+        "Profile: I lead backend teams shipping ML-powered experiences.\n"
+        "Tone: warm"
+    )
     payload = {
         "user_id": str(uuid.uuid4()),
-        "company": "Acme Corp",
-        "role": "Senior Backend Engineer",
-        "candidate_profile": "I lead backend teams shipping ML-powered experiences.",
-        "tone": "warm",
+        "message": message,
     }
-    response = client.post("/draft-message", json=payload)
+    response = client.post("/chat", json=payload)
     assert response.status_code == 200
     data = response.json()
-    assert "outreach_message" in data
-    assert "email_version" in data
+    assert data["request_type"] == "draft_message"
+    assert "outreach_message" in data["output"]
+    assert "email_version" in data["output"]

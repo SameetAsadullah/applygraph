@@ -5,7 +5,7 @@ Agentic Job Copilot is a backend-first AI service that analyzes job descriptions
 ## Architecture
 
 - **FastAPI** for the HTTP surface with typed Pydantic schemas.
-- **LangGraph** orchestrates the business flow (`parse_input → classify_request → retrieve_memory → plan_response → generate_output → review_output → persist_memory → return_result`).
+- **LangGraph** orchestrates the business flow (`prepare_request → parse_input → classify_request → retrieve_memory → generate_output → review_output → persist_memory → return_result`).
 - **Tool layer** implements MCP-style tools for job parsing, profile reading, memory retrieval, and outreach drafting, keeping reusable logic outside workflow nodes.
 - **Services** encapsulate LLM interactions (with OpenAI or deterministic fallbacks) for job analysis, resume tailoring, outreach drafting, and semantic memory.
 - **PostgreSQL + pgvector** persist users, jobs, applications, memory chunks, and interaction runs. Dev startup auto-creates tables/extension when available.
@@ -74,34 +74,31 @@ By default the service uses OpenAI (`LLM_PROVIDER=openai`). To switch to Gemini:
 
 | Endpoint | Description |
 | --- | --- |
-| `GET /health` | Service liveness | 
-| `POST /analyze-job` | Skill gap analysis & resume recommendations |
-| `POST /tailor-resume` | Rewrites bullets for the target job |
-| `POST /draft-message` | Drafts outreach DM + email |
-| `POST /memory/save` | Persist arbitrary artifacts to semantic memory |
+| `GET /health` | Service liveness |
+| `POST /chat` | Single entry point. Send a free-form prompt and the LLM router decides whether to analyze a job, tailor resume bullets, draft outreach, or save memory. Response includes the chosen `request_type` plus the downstream service output (which already contains retrieved memories where relevant). |
 
-### Example: Analyze Job
+### Example: Unified Chat Call
 ```bash
-curl -X POST http://localhost:8000/analyze-job \
+curl -X POST http://localhost:8000/chat \
   -H 'Content-Type: application/json' \
   -d '{
         "user_id": "e1bb9e5c-6930-4f97-8a41-36c9348d8c44",
-        "job_description": "Own FastAPI services and coach junior engineers.",
-        "candidate_profile": "Led platform APIs at Contoso, mentoring 4 devs."
+        "message": "Analyze this job for me.\nJob: Own FastAPI services and coach junior engineers.\nProfile: Led platform APIs at Contoso, mentoring 4 devs."
       }'
 ```
 Response
 ```json
 {
-  "matched_skills": ["fastapi", "engineers"],
-  "missing_skills": ["coach"],
-  "fit_summary": "...",
-  "resume_recommendations": ["..."],
-  "retrieved_memory": []
+  "request_type": "analyze_job",
+  "output": {
+    "matched_skills": ["fastapi", "engineers"],
+    "missing_skills": ["coach"],
+    "fit_summary": "...",
+    "resume_recommendations": ["..."],
+    "retrieved_memory": []
+  }
 }
 ```
-
-Similar payloads exist for `/tailor-resume` (pass `resume_bullets`) and `/draft-message` (pass `company`, `role`, `candidate_profile`, optional `hiring_manager_name`, `tone`). `/memory/save` requires `user_id`, `memory_type`, `content`, and optional metadata; it returns the stored memory id.
 
 ## Testing
 ```

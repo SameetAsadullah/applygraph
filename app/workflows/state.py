@@ -11,6 +11,7 @@ from app.schemas.api import MemorySnippet
 
 
 class RequestType(str, enum.Enum):
+    CHAT = "chat"
     ANALYZE_JOB = "analyze_job"
     TAILOR_RESUME = "tailor_resume"
     DRAFT_MESSAGE = "draft_message"
@@ -28,13 +29,14 @@ class WorkflowState(TypedDict, total=False):
     tone: Optional[str]
     hiring_manager_name: Optional[str]
     memory_payload: dict[str, Any]
+    chat_message: Optional[str]
+    chat_plan: dict[str, Any]
 
     db_session: AsyncSession
 
     parsed_job: dict[str, Any]
     parsed_profile: dict[str, Any]
     retrieved_memory: list[MemorySnippet]
-    plan: str
     output: dict[str, Any]
     errors: list[str]
     saved_memory_ids: list[uuid.UUID]

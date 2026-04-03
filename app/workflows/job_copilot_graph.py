@@ -9,6 +9,7 @@ from opentelemetry import trace
 
 from app.db.models import MemoryType
 from app.schemas.api import JobAnalysisResponse, ResumeTailorResponse
+from app.services.chat_planner import ChatPlannerService
 from app.services.job_analysis import JobAnalysisService
 from app.services.memory import MemoryService
 from app.services.resume import ResumeTailorService
@@ -22,6 +23,7 @@ from app.workflows.state import RequestType, WorkflowState
 
 @dataclass
 class WorkflowServices:
+    chat_planner: ChatPlannerService
     job_parser: JobParserTool
     profile_reader: ProfileReaderTool
     memory_retriever: MemoryRetrievalTool
@@ -35,6 +37,33 @@ class WorkflowServices:
 def build_workflow(services: WorkflowServices):
     graph = StateGraph(WorkflowState)
     tracer = trace.get_tracer("agentic-job-copilot.workflow")
+
+    async def prepare_request(state: WorkflowState) -> dict[str, Any]:
+        if state.get("request_type") != RequestType.CHAT:
+            return {}
+        chat_message = state.get("chat_message") or ""
+        plan = await services.chat_planner.plan(chat_message)
+        updates: dict[str, Any] = {
+            "request_type": plan.request_type,
+            "chat_plan": plan.model_dump(),
+        }
+        if plan.job_description is not None:
+            updates["job_description"] = plan.job_description
+        if plan.resume_bullets is not None:
+            updates["resume_bullets"] = plan.resume_bullets
+        if plan.candidate_profile is not None:
+            updates["candidate_profile"] = plan.candidate_profile
+        if plan.company_name is not None:
+            updates["company_name"] = plan.company_name
+        if plan.role is not None:
+            updates["role"] = plan.role
+        if plan.tone is not None:
+            updates["tone"] = plan.tone
+        if plan.hiring_manager_name is not None:
+            updates["hiring_manager_name"] = plan.hiring_manager_name
+        if plan.memory_payload is not None:
+            updates["memory_payload"] = plan.memory_payload
+        return updates
 
     async def parse_input(state: WorkflowState) -> dict[str, Any]:
         job_description = state.get("job_description", "")
@@ -60,18 +89,6 @@ def build_workflow(services: WorkflowServices):
             limit=5,
         )
         return {"retrieved_memory": memories}
-
-    async def plan_response(state: WorkflowState) -> dict[str, Any]:
-        request_type = state["request_type"]
-        summary_prompt = (
-            f"Plan how to handle request type {request_type.value} with the inputs provided."
-        )
-        job_description = state.get("job_description", "")[:800]
-        plan = await services.llm_service.complete(
-            "You plan workflows for job application copilots.",
-            f"Inputs: {job_description}\nExisting plan: {state.get('plan', '')}\n{summary_prompt}",
-        )
-        return {"plan": plan}
 
     async def generate_output(state: WorkflowState) -> dict[str, Any]:
         request_type = state["request_type"]
@@ -148,9 +165,17 @@ def build_workflow(services: WorkflowServices):
             )
         elif request_type == RequestType.SAVE_MEMORY:
             payload = state.get("memory_payload", {})
+            memory_type_value = payload.get("memory_type", MemoryType.COMPANY_NOTES)
+            if isinstance(memory_type_value, str):
+                try:
+                    memory_type = MemoryType(memory_type_value)
+                except ValueError:
+                    memory_type = MemoryType.COMPANY_NOTES
+            else:
+                memory_type = memory_type_value
             payloads.append(
                 (
-                    payload.get("memory_type", MemoryType.COMPANY_NOTES),
+                    memory_type,
                     payload.get("content", ""),
                     payload.get("metadata"),
                 )
@@ -172,20 +197,20 @@ def build_workflow(services: WorkflowServices):
         span.end()
         return state
 
+    graph.add_node("prepare_request", prepare_request)
     graph.add_node("parse_input", parse_input)
     graph.add_node("classify_request", classify_request)
     graph.add_node("retrieve_memory", retrieve_memory)
-    graph.add_node("plan_response", plan_response)
     graph.add_node("generate_output", generate_output)
     graph.add_node("review_output", review_output)
     graph.add_node("persist_memory", persist_memory)
     graph.add_node("return_result", return_result)
 
-    graph.set_entry_point("parse_input")
+    graph.set_entry_point("prepare_request")
+    graph.add_edge("prepare_request", "parse_input")
     graph.add_edge("parse_input", "classify_request")
     graph.add_edge("classify_request", "retrieve_memory")
-    graph.add_edge("retrieve_memory", "plan_response")
-    graph.add_edge("plan_response", "generate_output")
+    graph.add_edge("retrieve_memory", "generate_output")
     graph.add_edge("generate_output", "review_output")
     graph.add_edge("review_output", "persist_memory")
     graph.add_edge("persist_memory", "return_result")
