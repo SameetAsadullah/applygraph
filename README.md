@@ -13,7 +13,7 @@ Agentic Job Copilot is a backend-first AI service that analyzes job descriptions
 - **Docker & docker-compose** provide a reproducible local stack (API + Postgres + OTEL collector).
 
 ```
-app/
+backend/
  ├── api/              # FastAPI routers + deps
  ├── core/             # Settings & configuration
  ├── db/               # SQLAlchemy models & session helpers
@@ -51,7 +51,7 @@ This starts the API at http://localhost:8000, Postgres with pgvector, and an OTE
 
 ### 4. Running locally without Docker
 ```
-uvicorn app.main:app --reload
+uvicorn backend.main:app --reload
 ```
 Set `DATABASE_URL` to your Postgres instance (pgvector extension required). Without a reachable DB, memory persistence gracefully degrades and logs a warning.
 
