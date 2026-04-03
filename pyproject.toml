@@ -49,7 +49,7 @@ build-backend = "setuptools.build_meta"
 package-dir = {"" = "."}
 
 [tool.setuptools.packages.find]
-include = ["app*"]
+include = ["backend*"]
 
 [tool.pytest.ini_options]
 minversion = "8.0"

@@ -5,8 +5,8 @@ import uuid
 import pytest
 from fastapi.testclient import TestClient
 
-from app.api import deps
-from app.main import app
+from backend.api import deps
+from backend.main import app
 
 
 @pytest.fixture(scope="module")
