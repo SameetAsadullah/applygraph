@@ -5,8 +5,8 @@ import streamlit as st
 from httpx import HTTPError
 
 from frontend.rendering import render_backend_response
-from frontend.services.api import submit_chat_request
-from frontend.services.pdf import extract_resume_text
+from frontend.services.api import stream_chat_request
+from frontend.services.pdf import extract_resume
 from frontend.state import add_turn, clear_chat, get_state, set_resume
 
 
@@ -29,7 +29,6 @@ def run_app() -> None:
     )
     if prompt:
         _submit_prompt(prompt, state.resume.text)
-        st.rerun()
 
 
 def _render_shell() -> None:
@@ -268,6 +267,7 @@ def _render_shell() -> None:
 
 
 def _render_sidebar(current_filename: str) -> None:
+    state = get_state()
     with st.sidebar:
         st.markdown(
             """
@@ -289,16 +289,32 @@ def _render_sidebar(current_filename: str) -> None:
         )
         uploaded_file = st.file_uploader("Resume PDF", type=["pdf"], label_visibility="collapsed")
         if uploaded_file is not None:
-            try:
-                resume_text = extract_resume_text(uploaded_file.getvalue())
-            except Exception as exc:
-                st.error(f"Could not read the uploaded PDF: {exc}")
-            else:
-                if resume_text:
-                    set_resume(uploaded_file.name, resume_text)
-                    st.success(f"Loaded `{uploaded_file.name}`")
+            file_bytes = uploaded_file.getvalue()
+            file_token = f"{uploaded_file.name}:{len(file_bytes)}"
+            if file_token != state.resume.file_token:
+                extraction_status = st.status("Reading resume PDF...", expanded=True)
+                try:
+                    extraction = extract_resume(file_bytes)
+                except Exception as exc:
+                    extraction_status.update(label="Resume import failed", state="error", expanded=True)
+                    st.error(f"Could not read the uploaded PDF: {exc}")
                 else:
-                    st.warning("The PDF was uploaded, but no readable text was extracted.")
+                    extraction_status.write(f"Processed {extraction.page_count} page(s)")
+                    extraction_status.write(f"Extracted {extraction.char_count} characters of profile text")
+                    if extraction.text:
+                        set_resume(
+                            uploaded_file.name,
+                            extraction.text,
+                            file_token=file_token,
+                            page_count=extraction.page_count,
+                            char_count=extraction.char_count,
+                        )
+                        extraction_status.update(label="Resume ready", state="complete", expanded=False)
+                    else:
+                        extraction_status.update(label="No readable text found", state="error", expanded=True)
+                        st.warning("The PDF was uploaded, but no readable text was extracted.")
+
+        current_filename = state.resume.filename or current_filename
 
         if current_filename:
             st.markdown(
@@ -311,6 +327,10 @@ def _render_sidebar(current_filename: str) -> None:
                 """,
                 unsafe_allow_html=True,
             )
+            if state.resume.page_count or state.resume.char_count:
+                st.caption(
+                    f"{state.resume.page_count} page(s) • {state.resume.char_count} characters extracted"
+                )
         else:
             st.markdown(
                 """
@@ -370,19 +390,87 @@ def _render_chat(chat_turns: list) -> None:
 
 def _submit_prompt(prompt: str, resume_text: str) -> None:
     add_turn("user", prompt)
+    with st.chat_message("user"):
+        st.write(prompt)
 
-    with st.spinner("Sending request to backend..."):
+    with st.chat_message("assistant"):
+        status_box = st.status("Working through the request...", expanded=True)
+        result: dict | None = None
         try:
-            result = submit_chat_request(
+            for event in stream_chat_request(
                 user_prompt=prompt,
                 resume_text=resume_text,
-            )
-        except HTTPError as exc:
+            ):
+                event_type = event.get("type")
+                if event_type == "stage":
+                    _render_stage_update(status_box, event)
+                elif event_type == "final":
+                    result = event.get("data")
+                elif event_type == "error":
+                    raise RuntimeError(event.get("message", "Streaming request failed"))
+        except (HTTPError, RuntimeError) as exc:
+            status_box.update(label="Backend request failed", state="error", expanded=True)
+            st.error(str(exc))
             add_turn("assistant", f"Backend request failed: {exc}")
             return
 
-    add_turn(
-        "assistant",
-        text="",
-        backend_response=result,
-    )
+        if result is None:
+            status_box.update(label="Backend request failed", state="error", expanded=True)
+            st.error("The backend stream ended without a final response.")
+            add_turn("assistant", "Backend request failed: stream ended without a final response.")
+            return
+
+        status_box.update(label="Analysis ready", state="complete", expanded=False)
+        render_backend_response(result)
+        add_turn(
+            "assistant",
+            text="",
+            backend_response=result,
+        )
+
+
+def _render_stage_update(status_box, event: dict) -> None:
+    stage = str(event.get("stage", "")).replace("_", " ").title()
+    status = event.get("status", "completed")
+    message = event.get("message") or stage
+    meta = event.get("meta", {})
+
+    if status == "started":
+        status_box.update(label=message, state="running", expanded=True)
+        status_box.write(f"Starting {stage.lower()}...")
+        return
+
+    detail = _format_stage_detail(event.get("stage", ""), meta)
+    if detail:
+        status_box.write(f"{message} - {detail}")
+    else:
+        status_box.write(f"{message} complete")
+
+
+def _format_stage_detail(stage: str, meta: dict) -> str:
+    if not meta:
+        return ""
+    if stage == "prepare_request":
+        request_type = meta.get("request_type")
+        if request_type == "rejected" and meta.get("guardrail_reason"):
+            return meta["guardrail_reason"]
+        if request_type:
+            return f"routed to {request_type}"
+    if stage == "parse_input":
+        return (
+            f"{meta.get('job_skill_count', 0)} job skill(s), "
+            f"{meta.get('profile_skill_count', 0)} profile skill(s)"
+        )
+    if stage == "classify_request" and meta.get("request_type"):
+        return f"confirmed {meta['request_type']}"
+    if stage == "retrieve_memory":
+        return f"{meta.get('memory_count', 0)} memory item(s)"
+    if stage == "generate_output":
+        keys = meta.get("keys", [])
+        if keys:
+            return ", ".join(keys)
+    if stage == "persist_memory":
+        return f"{meta.get('saved_memory_count', 0)} item(s) saved"
+    if stage == "review_output" and meta.get("errors"):
+        return ", ".join(meta["errors"])
+    return ""

@@ -24,9 +24,22 @@ def get_state() -> FrontendState:
     return st.session_state[STATE_KEY]
 
 
-def set_resume(filename: str, text: str) -> None:
+def set_resume(
+    filename: str,
+    text: str,
+    *,
+    file_token: str = "",
+    page_count: int = 0,
+    char_count: int = 0,
+) -> None:
     state = get_state()
-    state.resume = ResumeContext(filename=filename, text=text)
+    state.resume = ResumeContext(
+        filename=filename,
+        text=text,
+        file_token=file_token,
+        page_count=page_count,
+        char_count=char_count,
+    )
 
 
 def add_turn(role: str, text: str, backend_response: dict | None = None) -> None:
