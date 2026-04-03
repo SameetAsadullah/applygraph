@@ -44,9 +44,14 @@ def build_workflow(services: WorkflowServices):
         chat_message = state.get("chat_message") or ""
         plan = await services.chat_planner.plan(chat_message)
         updates: dict[str, Any] = {
-            "request_type": plan.request_type,
             "chat_plan": plan.model_dump(),
         }
+        if not plan.allowed:
+            reason = plan.rejection_reason or "I can only help with job application topics."
+            updates["request_type"] = RequestType.REJECTED
+            updates["guardrail_reason"] = reason
+            return updates
+        updates["request_type"] = plan.request_type
         if plan.job_description is not None:
             updates["job_description"] = plan.job_description
         if plan.resume_bullets is not None:
@@ -93,6 +98,9 @@ def build_workflow(services: WorkflowServices):
     async def generate_output(state: WorkflowState) -> dict[str, Any]:
         request_type = state["request_type"]
         retrieved_memory = state.get("retrieved_memory", [])
+        if request_type == RequestType.REJECTED:
+            reason = state.get("guardrail_reason") or "I can only help with job application topics."
+            return {"output": {"message": reason}}
         if request_type == RequestType.ANALYZE_JOB:
             response: JobAnalysisResponse = await services.job_analysis.analyze(
                 job_description=state.get("job_description", ""),

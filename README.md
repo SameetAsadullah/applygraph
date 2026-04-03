@@ -75,7 +75,7 @@ By default the service uses OpenAI (`LLM_PROVIDER=openai`). To switch to Gemini:
 | Endpoint | Description |
 | --- | --- |
 | `GET /health` | Service liveness |
-| `POST /chat` | Single entry point. Send a free-form prompt and the LLM router decides whether to analyze a job, tailor resume bullets, draft outreach, or save memory. Response includes the chosen `request_type` plus the downstream service output (which already contains retrieved memories where relevant). |
+| `POST /chat` | Single entry point. Send a free-form prompt and the LLM router decides whether to analyze a job, tailor resume bullets, draft outreach, or save memory. Off-topic prompts are rejected with `request_type: "rejected"` and a short guardrail message. |
 
 ### Example: Unified Chat Call
 ```bash
