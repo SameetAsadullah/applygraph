@@ -1,0 +1,16 @@
+{
+  "name": "draft_message_warm",
+  "input": {
+    "message": "Draft an outreach message.\nCompany: Acme Corp\nRole: Senior Backend Engineer\nProfile: I lead backend teams shipping ML-powered experiences.\nTone: warm"
+  },
+  "expected": {
+    "request_type": "draft_message",
+    "required_output_keys": [
+      "outreach_message",
+      "email_version"
+    ],
+    "required_terms": ["acme", "backend"],
+    "forbidden_terms": ["sourdough"]
+  },
+  "rubric": "The response should route to draft_message and produce a concise warm recruiter note plus an email variant tailored to Acme and the backend engineering role."
+}

@@ -1,0 +1,15 @@
+{
+  "name": "off_topic_guardrail",
+  "input": {
+    "message": "Tell me how to bake sourdough bread."
+  },
+  "expected": {
+    "request_type": "rejected",
+    "required_output_keys": [
+      "message"
+    ],
+    "required_terms": ["job"],
+    "forbidden_terms": ["starter recipe"]
+  },
+  "rubric": "The response should reject the prompt as off-topic with a short guardrail message saying the assistant only handles job-related tasks."
+}
