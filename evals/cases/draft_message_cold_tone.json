@@ -1,0 +1,14 @@
+{
+  "name": "draft_message_cold_tone",
+  "category": "draft_message",
+  "input": {
+    "message": "Write a message for a recruiter. Company: Datadog Role: Senior Platform Engineer Profile: I lead backend reliability work for distributed services. Tone: concise"
+  },
+  "expected": {
+    "request_type": "draft_message",
+    "required_output_keys": ["outreach_message", "email_version"],
+    "required_terms": ["datadog", "platform"],
+    "forbidden_terms": ["weather"]
+  },
+  "rubric": "The response should route to draft_message and reflect the concise tone request in the generated outreach content."
+}

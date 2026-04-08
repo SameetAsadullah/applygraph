@@ -1,5 +1,6 @@
 {
   "name": "analyze_job_fastapi_fit",
+  "category": "analyze_job",
   "input": {
     "message": "Analyze this role.\nJob: Build FastAPI APIs and mentor backend engineers.\nProfile: Built Python APIs and led backend teams."
   },

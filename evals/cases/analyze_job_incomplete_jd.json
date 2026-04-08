@@ -1,0 +1,14 @@
+{
+  "name": "analyze_job_incomplete_jd",
+  "category": "analyze_job",
+  "input": {
+    "message": "Analyze this job for me. Job: Backend role with Python, APIs, and async systems. Profile: Built internal Python services and supported API integrations."
+  },
+  "expected": {
+    "request_type": "analyze_job",
+    "required_output_keys": ["matched_skills", "missing_skills", "fit_summary", "resume_recommendations"],
+    "required_terms": ["python", "apis"],
+    "forbidden_terms": ["starter recipe"]
+  },
+  "rubric": "The response should still analyze an incomplete JD, compare the profile against Python/API requirements, and keep the summary actionable."
+}

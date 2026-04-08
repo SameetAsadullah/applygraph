@@ -1,0 +1,14 @@
+{
+  "name": "tailor_resume_greeting_request",
+  "category": "tailor_resume",
+  "input": {
+    "message": "Hi, can you tailor my resume for this? Job: Build backend APIs and partner with product. Bullets:\n- Built API integrations\n- Coordinated release launches\nProfile: Backend engineer with product-facing experience."
+  },
+  "expected": {
+    "request_type": "tailor_resume",
+    "required_output_keys": ["tailored_bullets", "rationale"],
+    "required_terms": ["apis"],
+    "forbidden_terms": ["cricket"]
+  },
+  "rubric": "The response should treat a greeting plus resume request as a tailoring workflow and return the expected fields."
+}

@@ -86,6 +86,12 @@ class ChatPlannerService:
                 "job_description": "",
                 "candidate_profile": "",
             }
+        if self._looks_explicitly_off_topic(lower):
+            return {
+                "allowed": False,
+                "rejection_reason": "I can only help with job searches, resumes, outreach, or saving related notes.",
+                "request_type": RequestType.REJECTED,
+            }
         if not self._looks_job_related(lower):
             return {
                 "allowed": False,
@@ -174,3 +180,35 @@ class ChatPlannerService:
             "draft",
         ]
         return any(keyword in lower_text for keyword in keywords)
+
+    def _looks_explicitly_off_topic(self, lower_text: str) -> bool:
+        off_topic_terms = [
+            "sourdough",
+            "bread",
+            "recipe",
+            "baking",
+            "weather",
+            "rain",
+            "temperature",
+            "cricket",
+            "football",
+            "nba",
+            "movie",
+            "netflix",
+            "horoscope",
+            "zodiac",
+        ]
+        if not any(term in lower_text for term in off_topic_terms):
+            return False
+        job_context_markers = [
+            "job description",
+            "application",
+            "apply to",
+            "hiring manager",
+            "recruiter",
+            "cover letter",
+            "resume bullet",
+            "candidate profile",
+            "interview loop",
+        ]
+        return not any(marker in lower_text for marker in job_context_markers)

@@ -1,0 +1,14 @@
+{
+  "name": "draft_message_minimal_context",
+  "category": "draft_message",
+  "input": {
+    "message": "Can you draft a DM for this role? Role: Senior Backend Engineer Profile: I have led platform API teams and shipped ML-powered features."
+  },
+  "expected": {
+    "request_type": "draft_message",
+    "required_output_keys": ["outreach_message", "email_version"],
+    "required_terms": ["backend"],
+    "forbidden_terms": ["movie"]
+  },
+  "rubric": "The response should still draft outreach with minimal company context and keep the role and candidate profile in view."
+}

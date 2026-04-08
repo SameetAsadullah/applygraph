@@ -1,0 +1,14 @@
+{
+  "name": "analyze_job_weak_profile",
+  "category": "analyze_job",
+  "input": {
+    "message": "Analyze this role. Job: Senior platform engineer with FastAPI, PostgreSQL, and mentoring experience. Profile: Early-career software engineer with internship experience in Java and QA support."
+  },
+  "expected": {
+    "request_type": "analyze_job",
+    "required_output_keys": ["matched_skills", "missing_skills", "fit_summary", "resume_recommendations"],
+    "required_terms": ["fastapi", "postgresql"],
+    "forbidden_terms": ["baking"]
+  },
+  "rubric": "The response should route to analyze_job, surface clear skill gaps for a weak profile, and avoid overstating fit."
+}

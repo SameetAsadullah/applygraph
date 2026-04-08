@@ -1,0 +1,14 @@
+{
+  "name": "guardrail_weather_job_word",
+  "category": "guardrail",
+  "input": {
+    "message": "What job should I do tomorrow if the weather is rainy in Karachi?"
+  },
+  "expected": {
+    "request_type": "rejected",
+    "required_output_keys": ["message"],
+    "required_terms": ["job"],
+    "forbidden_terms": ["forecast"]
+  },
+  "rubric": "The response should reject an off-topic weather question even though it contains the word job."
+}

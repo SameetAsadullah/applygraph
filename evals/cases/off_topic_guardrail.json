@@ -1,5 +1,6 @@
 {
   "name": "off_topic_guardrail",
+  "category": "guardrail",
   "input": {
     "message": "Tell me how to bake sourdough bread."
   },

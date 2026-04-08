@@ -1,0 +1,14 @@
+{
+  "name": "analyze_job_greeting_then_fit",
+  "category": "analyze_job",
+  "input": {
+    "message": "Hey there, can you tell me if I fit this job? Job: Build data-heavy backend APIs in Python and work with product managers. Profile: Built Python APIs and worked with cross-functional teams."
+  },
+  "expected": {
+    "request_type": "analyze_job",
+    "required_output_keys": ["matched_skills", "missing_skills", "fit_summary", "resume_recommendations"],
+    "required_terms": ["python", "apis"],
+    "forbidden_terms": ["weather"]
+  },
+  "rubric": "The response should handle a greeting plus a job-fit request and still route correctly to job analysis."
+}

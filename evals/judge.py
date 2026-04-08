@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from dataclasses import dataclass
 from typing import Any
 
-from backend.core.config import get_settings
+from backend.core.config import Settings, get_settings
 from backend.services.llm import LLMService
 
 
@@ -18,11 +19,58 @@ class JudgeResult:
     raw_response: str | None = None
 
 
+@dataclass
+class JudgeConfig:
+    provider: str
+    model: str
+    openai_api_key: str | None
+    gemini_api_key: str | None
+
+    @property
+    def enabled(self) -> bool:
+        provider = self.provider.lower()
+        if provider == "openai":
+            return bool(self.openai_api_key)
+        if provider == "gemini":
+            return bool(self.gemini_api_key)
+        return False
+
+
+def load_judge_config() -> JudgeConfig:
+    base = get_settings()
+    provider = os.getenv("EVAL_JUDGE_PROVIDER", base.llm_provider).lower()
+    model = os.getenv(
+        "EVAL_JUDGE_MODEL",
+        base.llm_model if provider == "openai" else base.gemini_model,
+    )
+    openai_api_key = os.getenv("EVAL_JUDGE_OPENAI_API_KEY", base.openai_api_key or "")
+    gemini_api_key = os.getenv("EVAL_JUDGE_GEMINI_API_KEY", base.gemini_api_key or "")
+    return JudgeConfig(
+        provider=provider,
+        model=model,
+        openai_api_key=openai_api_key or None,
+        gemini_api_key=gemini_api_key or None,
+    )
+
+
 class EvalJudge:
     def __init__(self) -> None:
-        settings = get_settings()
+        config = load_judge_config()
+        base = get_settings()
+        settings = Settings(
+            app_env=base.app_env,
+            database_url=base.database_url,
+            sync_database_url=base.sync_database_url,
+            llm_provider=config.provider,
+            llm_model=config.model if config.provider == "openai" else base.llm_model,
+            gemini_model=config.model if config.provider == "gemini" else base.gemini_model,
+            openai_api_key=config.openai_api_key,
+            gemini_api_key=config.gemini_api_key,
+            otel_exporter_otlp_endpoint="",
+        )
         self._llm = LLMService(settings)
-        self._enabled = bool(settings.openai_api_key or settings.gemini_api_key)
+        self._config = config
+        self._enabled = config.enabled
 
     @property
     def enabled(self) -> bool:
@@ -41,7 +89,10 @@ class EvalJudge:
                 available=False,
                 score=None,
                 passed=None,
-                summary="LLM judge skipped because no API key is configured.",
+                summary=(
+                    "LLM judge skipped because the configured judge provider has no API key. "
+                    "Set EVAL_JUDGE_PROVIDER / EVAL_JUDGE_MODEL / EVAL_JUDGE_*_API_KEY."
+                ),
             )
 
         system_prompt = (

@@ -1,0 +1,14 @@
+{
+  "name": "guardrail_sports_career_word",
+  "category": "guardrail",
+  "input": {
+    "message": "Should I change my career because my cricket team lost again?"
+  },
+  "expected": {
+    "request_type": "rejected",
+    "required_output_keys": ["message"],
+    "required_terms": ["job"],
+    "forbidden_terms": ["scoreboard"]
+  },
+  "rubric": "The response should reject a sports-related question that only uses career language superficially."
+}

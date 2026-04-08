@@ -1,0 +1,14 @@
+{
+  "name": "analyze_job_ambiguous_fit",
+  "category": "analyze_job",
+  "input": {
+    "message": "Would I be a fit for this role? Job: Staff backend engineer building Python APIs and mentoring engineers. Profile: Led backend platform work and coached junior developers."
+  },
+  "expected": {
+    "request_type": "analyze_job",
+    "required_output_keys": ["matched_skills", "missing_skills", "fit_summary", "resume_recommendations"],
+    "required_terms": ["backend", "apis"],
+    "forbidden_terms": ["sourdough"]
+  },
+  "rubric": "The response should treat the prompt as a job-fit analysis request, identify backend/API overlap, and produce a concise fit summary plus resume recommendations."
+}
