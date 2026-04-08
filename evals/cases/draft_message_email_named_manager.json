@@ -1,0 +1,15 @@
+{
+  "name": "draft_message_email_named_manager",
+  "category": "draft_message",
+  "input": {
+    "message": "write me an email according to mail that i can use for outreaching a hiring manager named Mavrick"
+  },
+  "expected": {
+    "request_type": "draft_message",
+    "required_output_keys": ["email_version"],
+    "absent_output_keys": ["outreach_message"],
+    "required_terms": ["mavrick"],
+    "forbidden_terms": ["linkedin dm", "dm:"]
+  },
+  "rubric": "The response should infer that the user wants only an email, address the hiring manager by name, and avoid generating a DM variant."
+}

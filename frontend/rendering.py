@@ -81,7 +81,14 @@ def _render_tailored_resume(output: dict[str, Any]) -> None:
 
 
 def _render_outreach(output: dict[str, Any]) -> None:
-    st.markdown("**Outreach Message**")
-    st.write(output.get("outreach_message", ""))
-    st.markdown("**Email Version**")
-    st.write(output.get("email_version", ""))
+    outreach_message = output.get("outreach_message")
+    email_version = output.get("email_version")
+
+    if outreach_message:
+        st.markdown("**Outreach Message**")
+        st.write(outreach_message)
+    if email_version:
+        st.markdown("**Email Version**")
+        st.write(email_version)
+    if not outreach_message and not email_version:
+        st.caption("No outreach content returned.")

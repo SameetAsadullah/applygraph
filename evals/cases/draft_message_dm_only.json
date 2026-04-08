@@ -1,0 +1,15 @@
+{
+  "name": "draft_message_dm_only",
+  "category": "draft_message",
+  "input": {
+    "message": "Draft a LinkedIn DM for this role. Company: Stripe Role: Backend Engineer Profile: I build Python APIs and lead platform reliability projects. Tone: warm"
+  },
+  "expected": {
+    "request_type": "draft_message",
+    "required_output_keys": ["outreach_message"],
+    "absent_output_keys": ["email_version"],
+    "required_terms": ["stripe", "backend"],
+    "forbidden_terms": ["forecast"]
+  },
+  "rubric": "The response should generate only the DM variant when the user explicitly asks for a DM or LinkedIn message."
+}

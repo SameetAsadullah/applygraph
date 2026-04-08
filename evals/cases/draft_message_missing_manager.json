@@ -6,9 +6,10 @@
   },
   "expected": {
     "request_type": "draft_message",
-    "required_output_keys": ["outreach_message", "email_version"],
+    "required_output_keys": ["email_version"],
+    "absent_output_keys": ["outreach_message"],
     "required_terms": ["stripe", "backend"],
     "forbidden_terms": ["sourdough"]
   },
-  "rubric": "The response should produce outreach content even when no hiring manager is provided."
+  "rubric": "The response should produce only the email variant when the user explicitly asks for an outreach email, even when no hiring manager is provided."
 }

@@ -6,9 +6,10 @@
   },
   "expected": {
     "request_type": "draft_message",
-    "required_output_keys": ["outreach_message", "email_version"],
+    "required_output_keys": ["outreach_message"],
+    "absent_output_keys": ["email_version"],
     "required_terms": ["backend"],
     "forbidden_terms": ["movie"]
   },
-  "rubric": "The response should still draft outreach with minimal company context and keep the role and candidate profile in view."
+  "rubric": "The response should generate only the DM variant when the user explicitly asks for a DM, even with minimal company context."
 }

@@ -21,7 +21,9 @@ class OutreachDraftTool(BaseTool):
         candidate_profile: str,
         tone: str,
         hiring_manager_name: str | None,
+        outreach_format: str,
         retrieved_memory: list[MemorySnippet],
+        user_request: str | None = None,
     ) -> dict[str, Any]:
         response: DraftMessageResponse = await self._service.draft(
             company=company,
@@ -29,6 +31,8 @@ class OutreachDraftTool(BaseTool):
             candidate_profile=candidate_profile,
             tone=tone,
             hiring_manager_name=hiring_manager_name,
+            outreach_format=outreach_format,
             retrieved_memory=retrieved_memory,
+            user_request=user_request,
         )
         return response.model_dump()

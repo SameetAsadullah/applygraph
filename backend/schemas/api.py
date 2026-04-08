@@ -31,8 +31,8 @@ class ResumeTailorResponse(BaseModel):
 
 
 class DraftMessageResponse(BaseModel):
-    outreach_message: str
-    email_version: str
+    outreach_message: str | None = None
+    email_version: str | None = None
     retrieved_memory: list[MemorySnippet] = Field(default_factory=list)
 
 

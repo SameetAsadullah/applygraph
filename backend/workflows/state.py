@@ -29,6 +29,7 @@ class WorkflowState(TypedDict, total=False):
     role: Optional[str]
     tone: Optional[str]
     hiring_manager_name: Optional[str]
+    outreach_format: Optional[str]
     memory_payload: dict[str, Any]
     chat_message: Optional[str]
     chat_plan: dict[str, Any]
