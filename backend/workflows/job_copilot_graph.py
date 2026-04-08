@@ -97,6 +97,8 @@ def build_workflow(services: WorkflowServices):
             updates["tone"] = plan.tone
         if plan.hiring_manager_name is not None:
             updates["hiring_manager_name"] = plan.hiring_manager_name
+        if plan.outreach_format is not None:
+            updates["outreach_format"] = plan.outreach_format
         if plan.memory_payload is not None:
             updates["memory_payload"] = plan.memory_payload
         return updates
@@ -145,6 +147,7 @@ def build_workflow(services: WorkflowServices):
                 profile_skills=state.get("parsed_profile", {}).get("skills", []),
                 candidate_profile=state.get("candidate_profile"),
                 retrieved_memory=retrieved_memory,
+                user_request=state.get("chat_message"),
             )
             return {"output": response.model_dump()}
         if request_type == RequestType.TAILOR_RESUME:
@@ -153,16 +156,19 @@ def build_workflow(services: WorkflowServices):
                 resume_bullets=state.get("resume_bullets", []),
                 candidate_profile=state.get("candidate_profile"),
                 retrieved_memory=retrieved_memory,
+                user_request=state.get("chat_message"),
             )
             return {"output": response.model_dump()}
         if request_type == RequestType.DRAFT_MESSAGE:
             result = await services.outreach_tool(
-                company=state.get("company_name") or state.get("role") or "Company",
-                role=state.get("role") or state.get("company_name") or "Role",
+                company=state.get("company_name") or "",
+                role=state.get("role") or "",
                 candidate_profile=state.get("candidate_profile") or "",
                 tone=state.get("tone") or "warm",
                 hiring_manager_name=state.get("hiring_manager_name"),
+                outreach_format=state.get("outreach_format") or "both",
                 retrieved_memory=retrieved_memory,
+                user_request=state.get("chat_message"),
             )
             return {"output": result}
         if request_type == RequestType.SAVE_MEMORY:

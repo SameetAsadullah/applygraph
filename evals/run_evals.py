@@ -185,6 +185,15 @@ def run_deterministic_checks(case: dict[str, Any], result: dict[str, Any]) -> li
             )
         )
 
+    for key in expected.get("absent_output_keys", []):
+        checks.append(
+            DeterministicCheck(
+                name=f"absent_key:{key}",
+                passed=key not in output or output.get(key) in (None, "", []),
+                detail=f"output should omit or leave empty '{key}'",
+            )
+        )
+
     for term in expected.get("required_terms", []):
         checks.append(
             DeterministicCheck(

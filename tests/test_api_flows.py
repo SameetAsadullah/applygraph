@@ -96,6 +96,38 @@ def test_chat_draft_message_flow(client: TestClient) -> None:
     assert "email_version" in data["output"]
 
 
+def test_chat_draft_email_only_flow(client: TestClient) -> None:
+    message = (
+        "Draft an email for a recruiter.\n"
+        "Company: Acme Corp\n"
+        "Role: Senior Backend Engineer\n"
+        "Profile: I lead backend teams shipping ML-powered experiences.\n"
+        "Tone: warm"
+    )
+    payload = {
+        "user_id": str(uuid.uuid4()),
+        "message": message,
+    }
+    events = _post_chat_stream(client, payload)
+    data = _final_stream_data(events)
+    assert data["request_type"] == "draft_message"
+    assert data["output"]["email_version"]
+    assert data["output"]["outreach_message"] is None
+
+
+def test_chat_draft_email_named_manager_flow(client: TestClient) -> None:
+    payload = {
+        "user_id": str(uuid.uuid4()),
+        "message": "write me an email according to mail that i can use for outreaching a hiring manager named Mavrick",
+    }
+    events = _post_chat_stream(client, payload)
+    data = _final_stream_data(events)
+    assert data["request_type"] == "draft_message"
+    assert data["output"]["email_version"]
+    assert data["output"]["outreach_message"] is None
+    assert "mavrick" in data["output"]["email_version"].lower()
+
+
 def test_chat_guardrail_rejects_off_topic(client: TestClient) -> None:
     payload = {
         "user_id": str(uuid.uuid4()),
