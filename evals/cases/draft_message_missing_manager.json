@@ -1,0 +1,14 @@
+{
+  "name": "draft_message_missing_manager",
+  "category": "draft_message",
+  "input": {
+    "message": "Draft an outreach email. Company: Stripe Role: Backend Engineer Profile: I build Python APIs and platform tooling for ML products. Tone: warm"
+  },
+  "expected": {
+    "request_type": "draft_message",
+    "required_output_keys": ["outreach_message", "email_version"],
+    "required_terms": ["stripe", "backend"],
+    "forbidden_terms": ["sourdough"]
+  },
+  "rubric": "The response should produce outreach content even when no hiring manager is provided."
+}

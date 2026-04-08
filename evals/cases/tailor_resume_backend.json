@@ -1,5 +1,6 @@
 {
   "name": "tailor_resume_backend",
+  "category": "tailor_resume",
   "input": {
     "message": "Please tailor my resume.\nJob: Looking for someone to build APIs and mentor engineers.\nBullets:\n- Built APIs in Python\n- Improved team velocity by 20%\nProfile: Led platform team shipping APIs."
   },

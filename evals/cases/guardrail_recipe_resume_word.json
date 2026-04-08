@@ -1,0 +1,14 @@
+{
+  "name": "guardrail_recipe_resume_word",
+  "category": "guardrail",
+  "input": {
+    "message": "Can you review my resume for baking sourdough bread at home?"
+  },
+  "expected": {
+    "request_type": "rejected",
+    "required_output_keys": ["message"],
+    "required_terms": ["job"],
+    "forbidden_terms": ["starter recipe"]
+  },
+  "rubric": "The response should reject a baking request even though it contains the word resume."
+}

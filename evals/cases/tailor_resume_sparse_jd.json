@@ -1,0 +1,14 @@
+{
+  "name": "tailor_resume_sparse_jd",
+  "category": "tailor_resume",
+  "input": {
+    "message": "Tailor my resume. Job: Backend engineer, Python, APIs. Bullets:\n- Built internal APIs in Python\n- Reduced incident volume by 25%\nProfile: Platform engineer who owns service reliability."
+  },
+  "expected": {
+    "request_type": "tailor_resume",
+    "required_output_keys": ["tailored_bullets", "rationale"],
+    "required_terms": ["python"],
+    "forbidden_terms": ["horoscope"]
+  },
+  "rubric": "The response should handle a sparse JD and still return tailored bullets and a rationale aligned to backend/Python API work."
+}

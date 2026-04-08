@@ -39,6 +39,7 @@ class DeterministicCheck:
 @dataclass
 class CaseResult:
     name: str
+    category: str
     passed: bool
     deterministic_score: float
     total_score: float
@@ -245,6 +246,7 @@ def summarize_case(
 
     return CaseResult(
         name=case["name"],
+        category=case.get("category", "uncategorized"),
         passed=passed,
         deterministic_score=round(deterministic_score, 4),
         total_score=round(total_score, 4),
@@ -286,6 +288,18 @@ def compare_with_baseline(
 def build_report(results: list[CaseResult], started_at: datetime) -> dict[str, Any]:
     pass_count = sum(1 for result in results if result.passed)
     average_score = sum(result.total_score for result in results) / len(results)
+    category_summary: dict[str, Any] = {}
+    for result in results:
+        bucket = category_summary.setdefault(
+            result.category,
+            {"cases": 0, "passed": 0, "failed": 0, "average_score": 0.0},
+        )
+        bucket["cases"] += 1
+        bucket["passed"] += int(result.passed)
+        bucket["failed"] += int(not result.passed)
+        bucket["average_score"] += result.total_score
+    for bucket in category_summary.values():
+        bucket["average_score"] = round(bucket["average_score"] / bucket["cases"], 4)
     return {
         "timestamp": started_at.isoformat(),
         "summary": {
@@ -294,6 +308,7 @@ def build_report(results: list[CaseResult], started_at: datetime) -> dict[str, A
             "failed": len(results) - pass_count,
             "average_score": round(average_score, 4),
             "regressions": [result.name for result in results if result.regression],
+            "categories": category_summary,
         },
         "results": [
             {
@@ -354,12 +369,22 @@ def print_summary(report: dict[str, Any]) -> None:
     print(f"- Average score: {summary['average_score']}")
     if summary["regressions"]:
         print(f"- Regressions: {', '.join(summary['regressions'])}")
+    if summary["categories"]:
+        print("- Categories:")
+        for category, category_summary in sorted(summary["categories"].items()):
+            print(
+                "  "
+                f"{category}: cases={category_summary['cases']}, "
+                f"passed={category_summary['passed']}, "
+                f"failed={category_summary['failed']}, "
+                f"avg_score={category_summary['average_score']}"
+            )
 
     for result in report["results"]:
         status = "PASS" if result["passed"] else "FAIL"
         regression = f" | regression: {result['regression']}" if result["regression"] else ""
         print(
-            f"  - {status} {result['name']} "
+            f"  - {status} {result['name']} [{result['category']}] "
             f"(score={result['total_score']:.2f}, route={result['request_type']}, latency={result['duration_ms']}ms){regression}"
         )
 

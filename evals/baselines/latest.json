@@ -1,13 +1,63 @@
 {
+  "analyze_job_ambiguous_fit": {
+    "passed": true,
+    "total_score": 1.0,
+    "request_type": "analyze_job"
+  },
   "analyze_job_fastapi_fit": {
     "passed": true,
     "total_score": 1.0,
     "request_type": "analyze_job"
   },
+  "analyze_job_greeting_then_fit": {
+    "passed": true,
+    "total_score": 1.0,
+    "request_type": "analyze_job"
+  },
+  "analyze_job_incomplete_jd": {
+    "passed": true,
+    "total_score": 0.92,
+    "request_type": "analyze_job"
+  },
+  "analyze_job_weak_profile": {
+    "passed": true,
+    "total_score": 1.0,
+    "request_type": "analyze_job"
+  },
+  "draft_message_cold_tone": {
+    "passed": true,
+    "total_score": 1.0,
+    "request_type": "draft_message"
+  },
+  "draft_message_minimal_context": {
+    "passed": true,
+    "total_score": 1.0,
+    "request_type": "draft_message"
+  },
+  "draft_message_missing_manager": {
+    "passed": true,
+    "total_score": 1.0,
+    "request_type": "draft_message"
+  },
   "draft_message_warm": {
     "passed": true,
     "total_score": 1.0,
     "request_type": "draft_message"
+  },
+  "guardrail_recipe_resume_word": {
+    "passed": true,
+    "total_score": 1.0,
+    "request_type": "rejected"
+  },
+  "guardrail_sports_career_word": {
+    "passed": true,
+    "total_score": 1.0,
+    "request_type": "rejected"
+  },
+  "guardrail_weather_job_word": {
+    "passed": true,
+    "total_score": 1.0,
+    "request_type": "rejected"
   },
   "off_topic_guardrail": {
     "passed": true,
@@ -16,7 +66,27 @@
   },
   "tailor_resume_backend": {
     "passed": true,
+    "total_score": 0.92,
+    "request_type": "tailor_resume"
+  },
+  "tailor_resume_greeting_request": {
+    "passed": true,
+    "total_score": 0.92,
+    "request_type": "tailor_resume"
+  },
+  "tailor_resume_malformed_bullets": {
+    "passed": true,
     "total_score": 1.0,
+    "request_type": "tailor_resume"
+  },
+  "tailor_resume_sparse_jd": {
+    "passed": true,
+    "total_score": 1.0,
+    "request_type": "tailor_resume"
+  },
+  "tailor_resume_weak_profile": {
+    "passed": false,
+    "total_score": 0.68,
     "request_type": "tailor_resume"
   }
 }

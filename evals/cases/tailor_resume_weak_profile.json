@@ -1,0 +1,14 @@
+{
+  "name": "tailor_resume_weak_profile",
+  "category": "tailor_resume",
+  "input": {
+    "message": "Please tailor my resume. Job: Senior backend engineer owning FastAPI services and mentoring engineers. Bullets:\n- Supported QA testing for internal tools\n- Wrote Java utilities during an internship\nProfile: Early-career engineer transitioning into backend development."
+  },
+  "expected": {
+    "request_type": "tailor_resume",
+    "required_output_keys": ["tailored_bullets", "rationale"],
+    "required_terms": ["fastapi"],
+    "forbidden_terms": ["recipe"]
+  },
+  "rubric": "The response should still tailor the resume for a weaker profile without inventing qualifications."
+}

@@ -67,12 +67,17 @@ Run the framework-free regression harness against the embedded app:
 ```bash
 python evals/run_evals.py --skip-judge
 ```
-This loads JSON cases from `evals/cases/`, invokes `POST /chat/stream`, scores deterministic checks (routing, required fields, required/forbidden terms), and writes a report to `evals/reports/latest.json`.
+This loads JSON cases from `evals/cases/`, invokes `POST /chat/stream`, scores deterministic checks (routing, required fields, required/forbidden terms), and writes a report to `evals/reports/latest.json`. The seeded suite covers analyze-job, tailor-resume, outreach, and guardrail flows, including edge cases like ambiguous prompts, sparse JDs, weak profiles, malformed bullets, greeting-prefixed asks, and off-topic prompts that still contain job-like words.
 
-To enable LLM-as-a-judge scoring, configure your provider keys in `.env` and run:
+To enable LLM-as-a-judge scoring with settings independent from the main app model, configure judge-specific variables in `.env` and run:
 ```bash
+EVAL_JUDGE_PROVIDER=openai
+EVAL_JUDGE_MODEL=gpt-4.1-mini
+EVAL_JUDGE_OPENAI_API_KEY=your-key-here
 python evals/run_evals.py
 ```
+
+The JSON report now includes category-level summaries (for example `analyze_job`, `tailor_resume`, `draft_message`, `guardrail`) so you can track quality by workflow instead of only overall pass rate.
 
 To refresh the stored baseline after an intentional quality improvement:
 ```bash

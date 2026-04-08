@@ -1,0 +1,14 @@
+{
+  "name": "tailor_resume_malformed_bullets",
+  "category": "tailor_resume",
+  "input": {
+    "message": "Please tailor my resume for this job. Job: Looking for a backend engineer to own APIs and mentor developers. Bullets: built Python APIs; improved latency by 30 percent; mentored interns. Profile: Backend engineer focused on platform services."
+  },
+  "expected": {
+    "request_type": "tailor_resume",
+    "required_output_keys": ["tailored_bullets", "rationale"],
+    "required_terms": [],
+    "forbidden_terms": ["sourdough"]
+  },
+  "rubric": "The response should still tailor the resume even when bullets are malformed and not formatted as clean markdown bullets."
+}

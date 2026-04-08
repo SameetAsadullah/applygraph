@@ -1,5 +1,6 @@
 {
   "name": "draft_message_warm",
+  "category": "draft_message",
   "input": {
     "message": "Draft an outreach message.\nCompany: Acme Corp\nRole: Senior Backend Engineer\nProfile: I lead backend teams shipping ML-powered experiences.\nTone: warm"
   },
