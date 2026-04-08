@@ -62,6 +62,23 @@ streamlit run frontend/app.py
 ```
 The frontend opens a local chat-style UI. A user uploads a resume PDF in the sidebar, then uses the main chat input to paste a job description or ask for job-fit analysis. Each prompt is sent automatically to the local streaming backend, and the UI shows PDF extraction plus per-node workflow progress while the response is being generated.
 
+### 4.2 Custom eval harness
+Run the framework-free regression harness against the embedded app:
+```bash
+python evals/run_evals.py --skip-judge
+```
+This loads JSON cases from `evals/cases/`, invokes `POST /chat/stream`, scores deterministic checks (routing, required fields, required/forbidden terms), and writes a report to `evals/reports/latest.json`.
+
+To enable LLM-as-a-judge scoring, configure your provider keys in `.env` and run:
+```bash
+python evals/run_evals.py
+```
+
+To refresh the stored baseline after an intentional quality improvement:
+```bash
+python evals/run_evals.py --update-baseline
+```
+
 ### 5. Telemetry
 Set `OTEL_EXPORTER_OTLP_ENDPOINT` to your collector (e.g., `http://otel-collector:4317`) to stream traces. Otherwise traces log to stdout via the console exporter.
 

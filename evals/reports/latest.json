@@ -1,0 +1,251 @@
+{
+  "timestamp": "2026-04-08T00:38:30.277587+00:00",
+  "summary": {
+    "cases": 4,
+    "passed": 4,
+    "failed": 0,
+    "average_score": 1.0,
+    "regressions": []
+  },
+  "results": [
+    {
+      "name": "analyze_job_fastapi_fit",
+      "passed": true,
+      "deterministic_score": 1.0,
+      "total_score": 1.0,
+      "duration_ms": 13064.22,
+      "request_type": "analyze_job",
+      "checks": [
+        {
+          "name": "request_type",
+          "passed": true,
+          "detail": "expected=analyze_job, actual=analyze_job"
+        },
+        {
+          "name": "has_key:matched_skills",
+          "passed": true,
+          "detail": "output contains key 'matched_skills'"
+        },
+        {
+          "name": "has_key:missing_skills",
+          "passed": true,
+          "detail": "output contains key 'missing_skills'"
+        },
+        {
+          "name": "has_key:fit_summary",
+          "passed": true,
+          "detail": "output contains key 'fit_summary'"
+        },
+        {
+          "name": "has_key:resume_recommendations",
+          "passed": true,
+          "detail": "output contains key 'resume_recommendations'"
+        },
+        {
+          "name": "required_term:fastapi",
+          "passed": true,
+          "detail": "output should mention 'fastapi'"
+        },
+        {
+          "name": "required_term:apis",
+          "passed": true,
+          "detail": "output should mention 'apis'"
+        },
+        {
+          "name": "forbidden_term:sourdough",
+          "passed": true,
+          "detail": "output should not mention 'sourdough'"
+        }
+      ],
+      "judge": {
+        "available": true,
+        "score": 5.0,
+        "passed": true,
+        "summary": "The assistant correctly routed the request to 'analyze_job'. It accurately addressed the rubric by discussing the overlap between Python APIs and FastAPI, as well as the alignment between leading teams and mentoring. The fit summary is logical and avoids hallucinating experience not present in the profile.",
+        "raw_response": "{\n  \"score\": 5,\n  \"passed\": true,\n  \"summary\": \"The assistant correctly routed the request to 'analyze_job'. It accurately addressed the rubric by discussing the overlap between Python APIs and FastAPI, as well as the alignment between leading teams and mentoring. The fit summary is logical and avoids hallucinating experience not present in the profile.\"\n}"
+      },
+      "output": {
+        "request_type": "analyze_job",
+        "output": {
+          "matched_skills": [
+            "apis",
+            "backend"
+          ],
+          "missing_skills": [
+            "build",
+            "engineers",
+            "fastapi",
+            "mentor"
+          ],
+          "fit_summary": "The candidate is a high-alignment match. While automated tracking flags \"FastAPI\" and \"mentor\" as missing, their profile demonstrates direct functional equivalence. Their experience building Python APIs provides the necessary technical foundation to master FastAPI quickly, while their history of leading backend teams confirms the required mentoring and leadership capabilities. \n\nThey possess the senior-level expertise needed to both execute hands-on development and provide strategic guidance to the engineering team. This candidate bridges the gap between technical execution and team growth, making them a strong fit for the dual requirements of this role.",
+          "resume_recommendations": [
+            "### Fit Summary",
+            "The candidate is a strong functional match, bringing direct experience in Python API development and backend leadership. While their profile confirms they have \"led teams,\" the specific keywords \"mentor\" and \"FastAPI\" are missing from the current documentation. Their background suggests the technical maturity required to architect systems and guide junior talent; however, the resume needs to bridge the gap between \"leading\" and \"mentoring\" while explicitly highlighting the required tech stack. With minor adjustments to terminology, this candidate is a high-potential hire for this dual-contributor and leadership role.",
+            "### Resume Changes"
+          ],
+          "retrieved_memory": []
+        }
+      },
+      "regression": null
+    },
+    {
+      "name": "draft_message_warm",
+      "passed": true,
+      "deterministic_score": 1.0,
+      "total_score": 1.0,
+      "duration_ms": 14639.09,
+      "request_type": "draft_message",
+      "checks": [
+        {
+          "name": "request_type",
+          "passed": true,
+          "detail": "expected=draft_message, actual=draft_message"
+        },
+        {
+          "name": "has_key:outreach_message",
+          "passed": true,
+          "detail": "output contains key 'outreach_message'"
+        },
+        {
+          "name": "has_key:email_version",
+          "passed": true,
+          "detail": "output contains key 'email_version'"
+        },
+        {
+          "name": "required_term:acme",
+          "passed": true,
+          "detail": "output should mention 'acme'"
+        },
+        {
+          "name": "required_term:backend",
+          "passed": true,
+          "detail": "output should mention 'backend'"
+        },
+        {
+          "name": "forbidden_term:sourdough",
+          "passed": true,
+          "detail": "output should not mention 'sourdough'"
+        }
+      ],
+      "judge": {
+        "available": true,
+        "score": 5.0,
+        "passed": true,
+        "summary": "The assistant correctly routed the request to the draft_message tool. It produced both a concise recruiter note (DM) and an email variant as requested. The content was well-tailored to the specific company (Acme Corp), role (Senior Backend Engineer), and user profile (leading backend teams for ML-powered experiences) while maintaining the requested warm tone.",
+        "raw_response": "{\n  \"score\": 5,\n  \"passed\": true,\n  \"summary\": \"The assistant correctly routed the request to the draft_message tool. It produced both a concise recruiter note (DM) and an email variant as requested. The content was well-tailored to the specific company (Acme Corp), role (Senior Backend Engineer), and user profile (leading backend teams for ML-powered experiences) while maintaining the requested warm tone.\"\n}"
+      },
+      "output": {
+        "request_type": "draft_message",
+        "output": {
+          "outreach_message": "DM:\nHi there\u2014I\u2019ve been following Acme Corp\u2019s work and would love to discuss the Senior Backend Engineer role. I currently lead backend teams focused on shipping ML-powered experiences, which seems to align closely with the scale you're reaching. Would you be open to a brief chat about how my background in building robust infrastructure for data-heavy products could help the team?\n\nEmail:\nSubject: Senior Backend Engineer - [Your Name]\n\nHi there,\n\nI\u2019ve been following Acme Corp\u2019s recent growth and was thrilled to see the opening for a Senior Backend Engineer. \n\nIn my current role, I lead backend teams dedicated to shipping ML-powered experiences, balancing high-performance architecture with the practical delivery needs of data-driven products. I\u2019m particularly impressed by Acme\u2019s approach to [Specific Feature/Project] and believe my experience scaling complex systems would be a strong addition to your engineering culture.\n\nI\u2019ve attached my resume and would love to learn more about your technical roadmap for the coming year. Are you available for a brief introductory call later this week?\n\nBest regards,\n\n[Your Name]\n[Link to Portfolio/LinkedIn]",
+          "email_version": "**LinkedIn DM**\nHi there, I\u2019ve been following Acme Corp\u2019s growth and would love to discuss the Senior Backend Engineer role. I currently lead backend teams specialized in shipping ML-powered experiences, and I\u2019m eager to bring that expertise to your infrastructure. Do you have a few minutes next week to see if my background in scaling data-intensive systems is a fit for your current goals?\n\n***\n\n**Email**\nSubject: Senior Backend Engineer | [Your Name]\n\nHi Acme Team,\n\nI\u2019m reaching out to express my interest in the Senior Backend Engineer position at Acme Corp. I\u2019ve spent the last several years leading backend teams focused specifically on shipping and scaling ML-powered experiences. \n\nI\u2019ve long admired Acme\u2019s approach to [Specific Company Product/Feature], and I believe my background in building robust infrastructure for high-performance ML applications would be a strong asset to your engineering team. I am particularly interested in how you are evolving your backend to support your latest initiatives.\n\nI\u2019ve attached my resume and would love the opportunity to discuss how my experience aligns with your technical roadmap. Are you available for a brief introductory call next Tuesday or Wednesday?\n\nBest,\n\n[Your Name]\n[LinkedIn Profile Link]",
+          "retrieved_memory": []
+        }
+      },
+      "regression": null
+    },
+    {
+      "name": "off_topic_guardrail",
+      "passed": true,
+      "deterministic_score": 1.0,
+      "total_score": 1.0,
+      "duration_ms": 3917.55,
+      "request_type": "rejected",
+      "checks": [
+        {
+          "name": "request_type",
+          "passed": true,
+          "detail": "expected=rejected, actual=rejected"
+        },
+        {
+          "name": "has_key:message",
+          "passed": true,
+          "detail": "output contains key 'message'"
+        },
+        {
+          "name": "required_term:job",
+          "passed": true,
+          "detail": "output should mention 'job'"
+        },
+        {
+          "name": "forbidden_term:starter recipe",
+          "passed": true,
+          "detail": "output should not mention 'starter recipe'"
+        },
+        {
+          "name": "rejection_message_non_empty",
+          "passed": true,
+          "detail": "guardrail responses should include a message"
+        }
+      ],
+      "judge": {
+        "available": true,
+        "score": 5.0,
+        "passed": true,
+        "summary": "The assistant correctly identified the prompt as off-topic and provided a concise guardrail message stating it only handles job-related tasks, perfectly adhering to the rubric.",
+        "raw_response": "{\n  \"score\": 5,\n  \"passed\": true,\n  \"summary\": \"The assistant correctly identified the prompt as off-topic and provided a concise guardrail message stating it only handles job-related tasks, perfectly adhering to the rubric.\"\n}"
+      },
+      "output": {
+        "request_type": "rejected",
+        "output": {
+          "message": "I only handle job-application topics such as job analysis, resume tailoring, outreach messages, and career-related memory."
+        }
+      },
+      "regression": null
+    },
+    {
+      "name": "tailor_resume_backend",
+      "passed": true,
+      "deterministic_score": 1.0,
+      "total_score": 1.0,
+      "duration_ms": 15382.52,
+      "request_type": "tailor_resume",
+      "checks": [
+        {
+          "name": "request_type",
+          "passed": true,
+          "detail": "expected=tailor_resume, actual=tailor_resume"
+        },
+        {
+          "name": "has_key:tailored_bullets",
+          "passed": true,
+          "detail": "output contains key 'tailored_bullets'"
+        },
+        {
+          "name": "has_key:rationale",
+          "passed": true,
+          "detail": "output contains key 'rationale'"
+        },
+        {
+          "name": "required_term:apis",
+          "passed": true,
+          "detail": "output should mention 'apis'"
+        },
+        {
+          "name": "forbidden_term:sourdough",
+          "passed": true,
+          "detail": "output should not mention 'sourdough'"
+        }
+      ],
+      "judge": {
+        "available": true,
+        "score": 5.0,
+        "passed": true,
+        "summary": "The assistant correctly routed the request to 'tailor_resume'. It provided two high-quality improved bullets that effectively synthesized the input profile (leadership) with the job requirements (mentoring and API development). The rationale was clear, professional, and stayed focused on the task.",
+        "raw_response": "{\n  \"score\": 5,\n  \"passed\": true,\n  \"summary\": \"The assistant correctly routed the request to 'tailor_resume'. It provided two high-quality improved bullets that effectively synthesized the input profile (leadership) with the job requirements (mentoring and API development). The rationale was clear, professional, and stayed focused on the task.\"\n}"
+      },
+      "output": {
+        "request_type": "tailor_resume",
+        "output": {
+          "tailored_bullets": [
+            "Architected and scaled high-concurrency Python APIs using REST and GraphQL standards, establishing the core platform architecture used by multiple cross-functional product teams.",
+            "Mentored a team of 6+ backend engineers through structured code reviews and technical design sessions, driving a 20% increase in team velocity and reducing average PR cycle time."
+          ],
+          "rationale": "Architected and deployed production-ready Python APIs for the core platform, standardizing service communication and reliability for cross-functional teams.\nBoosted engineering velocity by 20% by mentoring developers on design patterns and implementing automated workflows for API delivery.\n\nThese rewrites elevate \"built\" to \"architected,\" reflecting the leadership and platform-level ownership expected of a staff engineer. They explicitly link the 20% velocity increase to mentorship and process standardization, transforming a generic metric into evidence of the candidate\u2019s ability to grow a team.",
+          "retrieved_memory": []
+        }
+      },
+      "regression": null
+    }
+  ]
+}

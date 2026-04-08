@@ -1,0 +1,22 @@
+{
+  "analyze_job_fastapi_fit": {
+    "passed": true,
+    "total_score": 1.0,
+    "request_type": "analyze_job"
+  },
+  "draft_message_warm": {
+    "passed": true,
+    "total_score": 1.0,
+    "request_type": "draft_message"
+  },
+  "off_topic_guardrail": {
+    "passed": true,
+    "total_score": 1.0,
+    "request_type": "rejected"
+  },
+  "tailor_resume_backend": {
+    "passed": true,
+    "total_score": 1.0,
+    "request_type": "tailor_resume"
+  }
+}

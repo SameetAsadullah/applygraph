@@ -1,0 +1,16 @@
+{
+  "name": "tailor_resume_backend",
+  "input": {
+    "message": "Please tailor my resume.\nJob: Looking for someone to build APIs and mentor engineers.\nBullets:\n- Built APIs in Python\n- Improved team velocity by 20%\nProfile: Led platform team shipping APIs."
+  },
+  "expected": {
+    "request_type": "tailor_resume",
+    "required_output_keys": [
+      "tailored_bullets",
+      "rationale"
+    ],
+    "required_terms": ["apis"],
+    "forbidden_terms": ["sourdough"]
+  },
+  "rubric": "The response should route to tailor_resume, return at least one improved resume bullet, and explain the rationale without drifting off-topic."
+}
