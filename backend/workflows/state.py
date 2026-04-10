@@ -21,7 +21,7 @@ class RequestType(str, enum.Enum):
 
 class WorkflowState(TypedDict, total=False):
     request_type: RequestType
-    user_id: Optional[uuid.UUID]
+    session_id: Optional[uuid.UUID]
     job_description: str
     company_name: Optional[str]
     candidate_profile: Optional[str]

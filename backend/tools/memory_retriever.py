@@ -19,7 +19,7 @@ class MemoryRetrievalTool(BaseTool):
         self,
         *,
         session: AsyncSession | None,
-        user_id: uuid.UUID | None,
+        session_id: uuid.UUID | None,
         query_text: str,
         limit: int = 5,
     ) -> list[MemorySnippet]:
@@ -27,7 +27,7 @@ class MemoryRetrievalTool(BaseTool):
             return []
         return await self._memory_service.fetch_similar(
             session,
-            user_id=user_id,
+            session_id=session_id,
             query_text=query_text,
             limit=limit,
         )

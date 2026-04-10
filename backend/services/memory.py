@@ -22,14 +22,14 @@ class MemoryService:
         self,
         session: AsyncSession,
         *,
-        user_id: uuid.UUID,
+        session_id: uuid.UUID,
         memory_type: models.MemoryType,
         content: str,
         metadata: dict | None = None,
-    ) -> models.MemoryChunk:
+    ) -> models.SessionMemoryChunk:
         embedding = await self._embeddings.embed_text(content)
-        chunk = models.MemoryChunk(
-            user_id=user_id,
+        chunk = models.SessionMemoryChunk(
+            session_id=session_id,
             memory_type=memory_type,
             content=content,
             meta=metadata or {},
@@ -44,24 +44,24 @@ class MemoryService:
         self,
         session: AsyncSession,
         *,
-        user_id: uuid.UUID | None,
+        session_id: uuid.UUID | None,
         query_text: str,
         limit: int = 5,
     ) -> list[MemorySnippet]:
-        if not user_id:
+        if not session_id:
             return []
 
         with self._tracer.start_as_current_span("memory.fetch_similar") as span:
             span.set_attribute("memory.limit", limit)
             embedding = await self._embeddings.embed_text(query_text)
             stmt = (
-                select(models.MemoryChunk)
-                .where(models.MemoryChunk.user_id == user_id)
-                .order_by(models.MemoryChunk.embedding.cosine_distance(embedding))
+                select(models.SessionMemoryChunk)
+                .where(models.SessionMemoryChunk.session_id == session_id)
+                .order_by(models.SessionMemoryChunk.embedding.cosine_distance(embedding))
                 .limit(limit)
             )
             result = await session.execute(stmt)
-            rows: Sequence[models.MemoryChunk] = result.scalars().all()
+            rows: Sequence[models.SessionMemoryChunk] = result.scalars().all()
             snippets = [
                 MemorySnippet(
                     id=row.id,
@@ -77,14 +77,14 @@ class MemoryService:
         self,
         session: AsyncSession,
         *,
-        user_id: uuid.UUID | None,
+        session_id: uuid.UUID | None,
         workflow: str,
         input_summary: str,
         output_summary: str,
         trace_id: str | None,
     ) -> models.InteractionRun:
         run = models.InteractionRun(
-            user_id=user_id,
+            user_id=session_id,
             workflow=workflow,
             input_summary=input_summary[:1000],
             output_summary=output_summary[:2000],

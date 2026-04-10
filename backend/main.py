@@ -5,7 +5,7 @@ import logging
 
 from fastapi import FastAPI
 
-from backend.api.routes import chat, health
+from backend.api.routes import chat, health, sessions
 from backend.core.config import Settings, get_settings
 from backend.db.session import init_db
 from backend.deps.embeddings import EmbeddingClient
@@ -63,6 +63,7 @@ def create_app() -> FastAPI:
             logger.warning("Skipping DB init due to error: %s", exc)
 
     app.include_router(health.router)
+    app.include_router(sessions.router)
     app.include_router(chat.router)
 
     return app

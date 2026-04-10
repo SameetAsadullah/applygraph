@@ -4,31 +4,75 @@ from __future__ import annotations
 import json
 from collections.abc import Iterator
 from typing import Any
+from urllib.parse import urljoin
 
 import httpx
 
 
-DEFAULT_STREAM_API_URL = "http://localhost:8000/chat/stream"
+DEFAULT_API_BASE_URL = "http://localhost:8000"
 
 
-def build_backend_message(user_prompt: str, resume_text: str) -> str:
-    prompt = user_prompt.strip()
-    profile = resume_text.strip()
-    if profile:
-        return f"{prompt}\n\nProfile: {profile}"
-    return prompt
+def _api_url(path: str) -> str:
+    return urljoin(f"{DEFAULT_API_BASE_URL}/", path.lstrip("/"))
+
+
+def create_session(title: str | None = None) -> dict[str, Any]:
+    response = httpx.post(_api_url("/sessions"), json={"title": title}, timeout=30.0)
+    response.raise_for_status()
+    return response.json()
+
+
+def list_sessions() -> list[dict[str, Any]]:
+    response = httpx.get(_api_url("/sessions"), timeout=30.0)
+    response.raise_for_status()
+    return response.json()
+
+
+def get_session(session_id: str) -> dict[str, Any]:
+    response = httpx.get(_api_url(f"/sessions/{session_id}"), timeout=30.0)
+    response.raise_for_status()
+    return response.json()
+
+
+def save_session_resume(
+    session_id: str,
+    *,
+    filename: str,
+    text: str,
+    page_count: int,
+    char_count: int,
+) -> dict[str, Any]:
+    response = httpx.patch(
+        _api_url(f"/sessions/{session_id}/resume"),
+        json={
+            "filename": filename,
+            "text": text,
+            "page_count": page_count,
+            "char_count": char_count,
+        },
+        timeout=60.0,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def delete_session(session_id: str) -> None:
+    response = httpx.delete(_api_url(f"/sessions/{session_id}"), timeout=30.0)
+    response.raise_for_status()
+
 
 def stream_chat_request(
+    session_id: str,
     user_prompt: str,
-    resume_text: str,
 ) -> Iterator[dict[str, Any]]:
     payload: dict[str, Any] = {
-        "message": build_backend_message(user_prompt, resume_text),
+        "session_id": session_id,
+        "message": user_prompt.strip(),
     }
 
     with httpx.stream(
         "POST",
-        DEFAULT_STREAM_API_URL,
+        _api_url("/chat/stream"),
         json=payload,
         headers={"Accept": "text/event-stream"},
         timeout=120.0,
