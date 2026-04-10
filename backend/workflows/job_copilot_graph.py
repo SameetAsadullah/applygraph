@@ -124,11 +124,11 @@ def build_workflow(services: WorkflowServices):
         if request_type == RequestType.REJECTED:
             return {"retrieved_memory": []}
         session = state.get("db_session")
-        user_id = state.get("user_id")
+        session_id = state.get("session_id")
         query = state.get("job_description") or state.get("candidate_profile") or ""
         memories = await services.memory_retriever(
             session=session,
-            user_id=user_id,
+            session_id=session_id,
             query_text=query,
             limit=5,
         )
@@ -187,9 +187,9 @@ def build_workflow(services: WorkflowServices):
         if request_type == RequestType.REJECTED:
             return {"saved_memory_ids": state.get("saved_memory_ids", [])}
         session = state.get("db_session")
-        user_id = state.get("user_id")
+        session_id = state.get("session_id")
         saved_ids = list(state.get("saved_memory_ids", []))
-        if not session or not user_id:
+        if not session or not session_id:
             return {"saved_memory_ids": saved_ids}
         request_type = state["request_type"]
         payloads = []
@@ -210,10 +210,14 @@ def build_workflow(services: WorkflowServices):
                 )
             )
         elif request_type == RequestType.DRAFT_MESSAGE:
+            outreach_text = (
+                state.get("output", {}).get("outreach_message")
+                or state.get("output", {}).get("email_version", "")
+            )
             payloads.append(
                 (
                     MemoryType.OUTREACH,
-                    state.get("output", {}).get("outreach_message", ""),
+                    outreach_text,
                     {"company": state.get("company_name"), "role": state.get("role")},
                 )
             )
@@ -238,7 +242,7 @@ def build_workflow(services: WorkflowServices):
             if content:
                 chunk = await services.memory_service.save_memory(
                     session,
-                    user_id=user_id,
+                    session_id=session_id,
                     memory_type=memory_type,
                     content=content,
                     metadata=metadata,

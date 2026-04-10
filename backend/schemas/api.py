@@ -37,8 +37,48 @@ class DraftMessageResponse(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    user_id: Optional[uuid.UUID] = None
+    session_id: uuid.UUID
     message: str
+
+
+class ChatSessionMessageResponse(BaseModel):
+    id: uuid.UUID
+    role: str
+    content: str
+    backend_response: dict[str, Any] | None = None
+    request_type: str | None = None
+    created_at: str
+
+
+class ChatSessionSummaryResponse(BaseModel):
+    id: uuid.UUID
+    title: str
+    created_at: str
+    updated_at: str
+    resume_filename: str | None = None
+    message_count: int = 0
+
+
+class ChatSessionDetailResponse(BaseModel):
+    id: uuid.UUID
+    title: str
+    created_at: str
+    updated_at: str
+    resume_filename: str | None = None
+    resume_page_count: int = 0
+    resume_char_count: int = 0
+    messages: list[ChatSessionMessageResponse] = Field(default_factory=list)
+
+
+class ChatSessionCreateRequest(BaseModel):
+    title: str | None = None
+
+
+class ChatSessionResumeRequest(BaseModel):
+    filename: str
+    text: str
+    page_count: int = 0
+    char_count: int = 0
 
 
 class HealthResponse(BaseModel):

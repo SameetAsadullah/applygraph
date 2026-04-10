@@ -58,7 +58,7 @@ class LiveApiClient:
     def invoke(self, message: str) -> dict[str, Any]:
         response = httpx.post(
             self._api_url,
-            json={"message": message},
+            json={"session_id": "00000000-0000-0000-0000-000000000001", "message": message},
             headers={"Accept": "text/event-stream"},
             timeout=120.0,
         )
@@ -84,7 +84,7 @@ class EmbeddedApiClient:
         self._client = TestClient(self._app)
 
     def invoke(self, message: str) -> dict[str, Any]:
-        response = self._client.post("/chat/stream", json={"message": message})
+        response = self._client.post("/chat/stream", json={"session_id": "00000000-0000-0000-0000-000000000001", "message": message})
         response.raise_for_status()
         return extract_final_sse_event(response.text)
 

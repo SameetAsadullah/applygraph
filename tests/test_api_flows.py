@@ -47,7 +47,7 @@ def test_chat_analyze_job_flow(client: TestClient) -> None:
         "Profile: Experienced backend dev skilled in FastAPI and async Python."
     )
     payload = {
-        "user_id": str(uuid.uuid4()),
+        "session_id": str(uuid.uuid4()),
         "message": message,
     }
     events = _post_chat_stream(client, payload)
@@ -67,7 +67,7 @@ def test_chat_tailor_resume_flow(client: TestClient) -> None:
         "Profile: Led platform team shipping APIs."
     )
     payload = {
-        "user_id": str(uuid.uuid4()),
+        "session_id": str(uuid.uuid4()),
         "message": message,
     }
     events = _post_chat_stream(client, payload)
@@ -86,7 +86,7 @@ def test_chat_draft_message_flow(client: TestClient) -> None:
         "Tone: warm"
     )
     payload = {
-        "user_id": str(uuid.uuid4()),
+        "session_id": str(uuid.uuid4()),
         "message": message,
     }
     events = _post_chat_stream(client, payload)
@@ -105,7 +105,7 @@ def test_chat_draft_email_only_flow(client: TestClient) -> None:
         "Tone: warm"
     )
     payload = {
-        "user_id": str(uuid.uuid4()),
+        "session_id": str(uuid.uuid4()),
         "message": message,
     }
     events = _post_chat_stream(client, payload)
@@ -117,7 +117,7 @@ def test_chat_draft_email_only_flow(client: TestClient) -> None:
 
 def test_chat_draft_email_named_manager_flow(client: TestClient) -> None:
     payload = {
-        "user_id": str(uuid.uuid4()),
+        "session_id": str(uuid.uuid4()),
         "message": "write me an email according to mail that i can use for outreaching a hiring manager named Mavrick",
     }
     events = _post_chat_stream(client, payload)
@@ -130,7 +130,7 @@ def test_chat_draft_email_named_manager_flow(client: TestClient) -> None:
 
 def test_chat_guardrail_rejects_off_topic(client: TestClient) -> None:
     payload = {
-        "user_id": str(uuid.uuid4()),
+        "session_id": str(uuid.uuid4()),
         "message": "Tell me how to bake sourdough bread.",
     }
     events = _post_chat_stream(client, payload)
@@ -141,7 +141,7 @@ def test_chat_guardrail_rejects_off_topic(client: TestClient) -> None:
 
 def test_chat_stream_emits_stage_events_and_final_payload(client: TestClient) -> None:
     payload = {
-        "user_id": str(uuid.uuid4()),
+        "session_id": str(uuid.uuid4()),
         "message": (
             "Analyze this role.\n"
             "Job: Build FastAPI APIs and mentor engineers.\n"

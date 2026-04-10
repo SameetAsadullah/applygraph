@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from frontend.models import ChatTurn, FrontendState, ResumeContext
+from frontend.models import ChatSessionState, ChatTurn, FrontendState, ResumeContext, SessionSummary
 
 
 STATE_KEY = "frontend_state"
@@ -11,20 +11,22 @@ STATE_KEY = "frontend_state"
 
 def get_state() -> FrontendState:
     if STATE_KEY not in st.session_state:
-        st.session_state[STATE_KEY] = FrontendState(
-            chat_turns=[
-                ChatTurn(
-                    role="assistant",
-                    text=(
-                        "Upload a resume PDF, then paste the job description or ask for a job-fit analysis."
-                    ),
-                )
-            ]
-        )
+        st.session_state[STATE_KEY] = FrontendState()
     return st.session_state[STATE_KEY]
 
 
-def set_resume(
+def set_sessions(session_summaries: list[SessionSummary]) -> None:
+    state = get_state()
+    state.sessions = session_summaries
+
+
+def set_active_session(session: ChatSessionState) -> None:
+    state = get_state()
+    state.active_session = session
+    state.initialized = True
+
+
+def set_active_resume(
     filename: str,
     text: str,
     *,
@@ -33,30 +35,39 @@ def set_resume(
     char_count: int = 0,
 ) -> None:
     state = get_state()
-    state.resume = ResumeContext(
+    if state.active_session is None:
+        return
+    state.active_session.resume = ResumeContext(
         filename=filename,
         text=text,
         file_token=file_token,
         page_count=page_count,
         char_count=char_count,
     )
+    for session in state.sessions:
+        if session.id == state.active_session.id:
+            session.resume_filename = filename
 
 
 def add_turn(role: str, text: str, backend_response: dict | None = None) -> None:
     state = get_state()
-    state.chat_turns.append(
+    if state.active_session is None:
+        return
+    state.active_session.chat_turns.append(
         ChatTurn(role=role, text=text, backend_response=backend_response)
     )
 
 
-def clear_chat() -> None:
-    st.session_state[STATE_KEY] = FrontendState(
-        chat_turns=[
-            ChatTurn(
-                role="assistant",
-                text=(
-                    "Chat reset. Upload a resume PDF, then send a prompt to analyze a job description."
-                ),
-            )
-        ]
-    )
+def update_active_session_title(title: str) -> None:
+    state = get_state()
+    if state.active_session is None:
+        return
+    state.active_session.title = title
+    for session in state.sessions:
+        if session.id == state.active_session.id:
+            session.title = title
+
+
+def set_initialized() -> None:
+    state = get_state()
+    state.initialized = True
