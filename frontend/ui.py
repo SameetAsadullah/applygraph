@@ -12,6 +12,7 @@ from frontend.services.api import (
     get_session,
     list_sessions,
     save_session_resume,
+    submit_message_feedback,
     stream_chat_request,
 )
 from frontend.services.pdf import extract_resume
@@ -21,6 +22,7 @@ from frontend.state import (
     set_active_session,
     set_initialized,
     set_sessions,
+    update_turn_feedback,
 )
 
 
@@ -495,6 +497,8 @@ def _render_chat(chat_turns: list[ChatTurn]) -> None:
         with st.chat_message(turn.role):
             if turn.role == "assistant" and turn.backend_response is not None:
                 render_backend_response(turn.backend_response)
+                if turn.id:
+                    _render_feedback_controls(turn)
             else:
                 st.write(turn.text)
 
@@ -532,6 +536,7 @@ def _submit_prompt(prompt: str, session_id: str) -> None:
         render_backend_response(result)
         add_turn("assistant", text="", backend_response=result)
         _refresh_active_session_from_backend()
+        st.rerun()
 
 
 def _refresh_active_session_from_backend() -> None:
@@ -628,9 +633,11 @@ def _delete_session(session_id: str) -> None:
 def _session_from_detail(payload: dict, *, file_token: str = "") -> ChatSessionState:
     messages = [
         ChatTurn(
+            id=message["id"],
             role=message["role"],
             text=message.get("content", ""),
             backend_response=message.get("backend_response"),
+            feedback_rating=message.get("feedback_rating"),
         )
         for message in payload.get("messages", [])
     ]
@@ -651,3 +658,36 @@ def _session_from_detail(payload: dict, *, file_token: str = "") -> ChatSessionS
             char_count=payload.get("resume_char_count", 0),
         ),
     )
+
+
+def _render_feedback_controls(turn: ChatTurn) -> None:
+    if turn.role != "assistant" or not turn.id:
+        return
+
+    current_rating = turn.feedback_rating
+    cols = st.columns([1, 1, 8], gap="small")
+    with cols[0]:
+        if st.button("👍", key=f"feedback-up-{turn.id}", use_container_width=True):
+            _submit_feedback(turn.id, "up")
+    with cols[1]:
+        if st.button("👎", key=f"feedback-down-{turn.id}", use_container_width=True):
+            _submit_feedback(turn.id, "down")
+    with cols[2]:
+        if current_rating == "up":
+            st.caption("Marked helpful")
+        elif current_rating == "down":
+            st.caption("Marked not helpful")
+
+
+def _submit_feedback(message_id: str, rating: str) -> None:
+    state = get_state()
+    if state.active_session is None:
+        return
+    try:
+        submit_message_feedback(state.active_session.id, message_id, rating)
+    except HTTPError as exc:
+        st.error(f"Could not save feedback: {exc}")
+        return
+    update_turn_feedback(message_id, rating)
+    _refresh_active_session_from_backend()
+    st.rerun()

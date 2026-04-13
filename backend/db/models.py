@@ -22,6 +22,11 @@ class MemoryType(str, enum.Enum):
     COMPANY_NOTES = "company_notes"
 
 
+class FeedbackRating(str, enum.Enum):
+    UP = "up"
+    DOWN = "down"
+
+
 class ChatSession(Base):
     __tablename__ = "chat_sessions"
 
@@ -148,6 +153,32 @@ class ChatSessionMessage(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
 
     session: Mapped["ChatSession"] = relationship(back_populates="messages")
+    feedback: Mapped["ChatMessageFeedback | None"] = relationship(
+        back_populates="message",
+        cascade="all, delete-orphan",
+        uselist=False,
+    )
+
+
+class ChatMessageFeedback(Base):
+    __tablename__ = "chat_message_feedback"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    message_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("chat_session_messages.id"),
+        nullable=False,
+        unique=True,
+    )
+    rating: Mapped[FeedbackRating] = mapped_column(Enum(FeedbackRating, name="feedback_rating_enum"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+    )
+
+    message: Mapped["ChatSessionMessage"] = relationship(back_populates="feedback")
 
 
 class SessionMemoryChunk(Base):
