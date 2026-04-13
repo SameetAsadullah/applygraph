@@ -6,9 +6,9 @@
   },
   "expected": {
     "request_type": "tailor_resume",
-    "required_output_keys": ["tailored_bullets", "rationale"],
+    "required_output_keys": ["response"],
     "required_terms": ["python"],
     "forbidden_terms": ["horoscope"]
   },
-  "rubric": "The response should handle a sparse JD and still return tailored bullets and a rationale aligned to backend/Python API work."
+  "rubric": "The response should handle a sparse JD and still return a useful tailoring answer aligned to backend and Python API work."
 }

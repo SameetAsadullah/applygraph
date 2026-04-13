@@ -6,9 +6,9 @@
   },
   "expected": {
     "request_type": "tailor_resume",
-    "required_output_keys": ["tailored_bullets", "rationale"],
+    "required_output_keys": ["response"],
     "required_terms": ["apis"],
     "forbidden_terms": ["cricket"]
   },
-  "rubric": "The response should treat a greeting plus resume request as a tailoring workflow and return the expected fields."
+  "rubric": "The response should treat a greeting plus resume request as a tailoring workflow and return a directly useful tailoring response."
 }

@@ -6,7 +6,7 @@
   },
   "expected": {
     "request_type": "tailor_resume",
-    "required_output_keys": ["tailored_bullets", "rationale"],
+    "required_output_keys": ["response"],
     "required_terms": [],
     "forbidden_terms": ["sourdough"]
   },

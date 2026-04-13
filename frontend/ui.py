@@ -571,11 +571,6 @@ def _format_stage_detail(stage: str, meta: dict) -> str:
             return meta["guardrail_reason"]
         if request_type:
             return f"routed to {request_type}"
-    if stage == "parse_input":
-        return (
-            f"{meta.get('job_skill_count', 0)} job skill(s), "
-            f"{meta.get('profile_skill_count', 0)} profile skill(s)"
-        )
     if stage == "classify_request" and meta.get("request_type"):
         return f"confirmed {meta['request_type']}"
     if stage == "retrieve_memory":

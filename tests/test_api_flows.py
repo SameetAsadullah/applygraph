@@ -53,8 +53,7 @@ def test_chat_analyze_job_flow(client: TestClient) -> None:
     events = _post_chat_stream(client, payload)
     data = _final_stream_data(events)
     assert data["request_type"] == "analyze_job"
-    assert "matched_skills" in data["output"]
-    assert "resume_recommendations" in data["output"]
+    assert data["output"]["response"]
 
 
 def test_chat_tailor_resume_flow(client: TestClient) -> None:
@@ -73,8 +72,7 @@ def test_chat_tailor_resume_flow(client: TestClient) -> None:
     events = _post_chat_stream(client, payload)
     data = _final_stream_data(events)
     assert data["request_type"] == "tailor_resume"
-    assert len(data["output"]["tailored_bullets"]) >= 1
-    assert "rationale" in data["output"]
+    assert data["output"]["response"]
 
 
 def test_chat_draft_message_flow(client: TestClient) -> None:
@@ -152,4 +150,4 @@ def test_chat_stream_emits_stage_events_and_final_payload(client: TestClient) ->
     assert any(event["type"] == "stage" and event["stage"] == "prepare_request" for event in events)
     data = _final_stream_data(events)
     assert data["request_type"] == "analyze_job"
-    assert "matched_skills" in data["output"]
+    assert data["output"]["response"]

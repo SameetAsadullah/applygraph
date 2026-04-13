@@ -22,8 +22,9 @@ class ResumeTailorService:
         )
         system_prompt = (
             "You are an expert resume writer for senior technical roles. "
-            "Rewrite bullets to match the target job while preserving truth, evidence, and measurable impact. "
-            "Do not invent technologies or outcomes that are not supported by the input."
+            "Answer resume-tailoring requests using only the provided job description, candidate profile, resume bullets, "
+            "and memory context. Improve alignment to the role while preserving truth, evidence, and measurable impact. "
+            "Do not invent technologies, outcomes, or experience."
         )
         bullet_block = "\n".join(f"- {bullet}" for bullet in resume_bullets)
         user_prompt = (
@@ -33,40 +34,26 @@ class ResumeTailorService:
             f"Existing resume bullets:\n{bullet_block or 'None provided'}\n\n"
             f"Memory context:\n{memory_context or 'None'}\n\n"
             "Task:\n"
-            "Rewrite the resume bullets so they better match the role.\n"
+            "Answer the user's request directly.\n"
             "Rules:\n"
-            "- return only bullet lines\n"
-            "- every line must start with '- '\n"
-            "- preserve numbers and evidence where possible\n"
-            "- avoid generic adjectives and filler\n"
-            "- keep each bullet to one line"
+            "- Adapt the response to what the user actually asked for instead of forcing a fixed template\n"
+            "- If rewritten bullets help, include them as bullets\n"
+            "- If strategic advice helps, include concise guidance after the bullets\n"
+            "- Preserve numbers and evidence where possible\n"
+            "- Avoid generic adjectives and filler\n"
+            "- Keep the response under 240 words"
         )
-        response = await self._llm.complete(system_prompt, user_prompt)
-        tailored = self._extract_bullets(response)
-        rationale_prompt = (
-            "Explain in 2-3 sentences how the bullets were tailored to the role.\n"
-            "Mention which job needs were emphasized and any important gaps that remain.\n"
-            "Do not use bullet points or markdown."
-        )
-        rationale = await self._llm.complete(system_prompt, user_prompt + "\n" + rationale_prompt)
-
-        if not tailored:
-            tailored = [bullet for bullet in resume_bullets]
+        response = (await self._llm.complete(system_prompt, user_prompt)).strip()
+        if not response:
+            if resume_bullets:
+                response = "\n".join(f"- {bullet}" for bullet in resume_bullets)
+            else:
+                response = (
+                    "I need stronger resume details to tailor this properly. Share 3-5 bullets with concrete scope, "
+                    "technologies, and measurable results so I can align them to the job."
+                )
 
         return ResumeTailorResponse(
-            tailored_bullets=tailored,
-            rationale=rationale.strip(),
+            response=response,
             retrieved_memory=retrieved_memory,
         )
-
-    def _extract_bullets(self, text: str) -> list[str]:
-        bullets: list[str] = []
-        for raw_line in text.splitlines():
-            line = raw_line.strip()
-            if not line:
-                continue
-            if line.startswith("- "):
-                bullets.append(line[2:].strip())
-            elif line.startswith("* "):
-                bullets.append(line[2:].strip())
-        return bullets

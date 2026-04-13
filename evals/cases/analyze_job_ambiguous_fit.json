@@ -6,9 +6,9 @@
   },
   "expected": {
     "request_type": "analyze_job",
-    "required_output_keys": ["matched_skills", "missing_skills", "fit_summary", "resume_recommendations"],
+    "required_output_keys": ["response"],
     "required_terms": ["backend", "apis"],
     "forbidden_terms": ["sourdough"]
   },
-  "rubric": "The response should treat the prompt as a job-fit analysis request, identify backend/API overlap, and produce a concise fit summary plus resume recommendations."
+  "rubric": "The response should treat the prompt as a job-fit analysis request, identify backend/API overlap, and produce a concise, directly useful answer."
 }
