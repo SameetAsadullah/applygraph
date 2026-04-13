@@ -43,6 +43,7 @@ class ChatSessionMessageResponse(BaseModel):
     content: str
     backend_response: dict[str, Any] | None = None
     request_type: str | None = None
+    feedback_rating: str | None = None
     created_at: str
 
 
@@ -75,6 +76,10 @@ class ChatSessionResumeRequest(BaseModel):
     text: str
     page_count: int = 0
     char_count: int = 0
+
+
+class ChatMessageFeedbackRequest(BaseModel):
+    rating: str
 
 
 class HealthResponse(BaseModel):

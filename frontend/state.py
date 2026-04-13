@@ -58,6 +58,16 @@ def add_turn(role: str, text: str, backend_response: dict | None = None) -> None
     )
 
 
+def update_turn_feedback(message_id: str, rating: str) -> None:
+    state = get_state()
+    if state.active_session is None:
+        return
+    for turn in state.active_session.chat_turns:
+        if turn.id == message_id:
+            turn.feedback_rating = rating
+            break
+
+
 def update_active_session_title(title: str) -> None:
     state = get_state()
     if state.active_session is None:

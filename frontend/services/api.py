@@ -61,6 +61,16 @@ def delete_session(session_id: str) -> None:
     response.raise_for_status()
 
 
+def submit_message_feedback(session_id: str, message_id: str, rating: str) -> dict[str, Any]:
+    response = httpx.post(
+        _api_url(f"/sessions/{session_id}/messages/{message_id}/feedback"),
+        json={"rating": rating},
+        timeout=30.0,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
 def stream_chat_request(
     session_id: str,
     user_prompt: str,

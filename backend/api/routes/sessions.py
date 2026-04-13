@@ -6,8 +6,9 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from backend.api.deps import get_db_session
-from backend.db.models import ChatSession
+from backend.db.models import ChatSession, FeedbackRating
 from backend.schemas.api import (
+    ChatMessageFeedbackRequest,
     ChatSessionCreateRequest,
     ChatSessionDetailResponse,
     ChatSessionMessageResponse,
@@ -56,6 +57,7 @@ def _serialize_session_detail(chat_session: ChatSession) -> ChatSessionDetailRes
                 content=message.content,
                 backend_response=message.backend_response,
                 request_type=message.request_type,
+                feedback_rating=message.feedback.rating.value if message.feedback is not None else None,
                 created_at=message.created_at.isoformat(),
             )
             for message in chat_session.messages
@@ -121,3 +123,30 @@ async def delete_session(session_id: uuid.UUID, session=Depends(get_db_session))
     if chat_session is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found.")
     await service.delete_session(session, chat_session=chat_session)
+
+
+@router.post("/{session_id}/messages/{message_id}/feedback", response_model=ChatSessionMessageResponse)
+async def set_message_feedback(
+    session_id: uuid.UUID,
+    message_id: uuid.UUID,
+    payload: ChatMessageFeedbackRequest,
+    session=Depends(get_db_session),
+) -> ChatSessionMessageResponse:
+    session = _require_db_session(session)
+    message = await service.get_message(session, session_id=session_id, message_id=message_id)
+    if message is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found.")
+    try:
+        feedback_rating = FeedbackRating(payload.rating)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid feedback rating.")
+    feedback = await service.set_feedback(session, message=message, rating=feedback_rating)
+    return ChatSessionMessageResponse(
+        id=message.id,
+        role=message.role,
+        content=message.content,
+        backend_response=message.backend_response,
+        request_type=message.request_type,
+        feedback_rating=feedback.rating.value,
+        created_at=message.created_at.isoformat(),
+    )

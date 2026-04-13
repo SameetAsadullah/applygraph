@@ -9,7 +9,9 @@ from typing import Any
 class ChatTurn:
     role: str
     text: str
+    id: str = ""
     backend_response: dict[str, Any] | None = None
+    feedback_rating: str | None = None
 
 
 @dataclass

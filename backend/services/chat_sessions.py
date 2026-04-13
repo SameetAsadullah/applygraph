@@ -54,7 +54,7 @@ class ChatSessionService:
     ) -> models.ChatSession | None:
         stmt = (
             select(models.ChatSession)
-            .options(selectinload(models.ChatSession.messages))
+            .options(selectinload(models.ChatSession.messages).selectinload(models.ChatSessionMessage.feedback))
             .where(models.ChatSession.id == session_id)
         )
         result = await session.execute(stmt)
@@ -128,6 +128,45 @@ class ChatSessionService:
     ) -> None:
         await session.delete(chat_session)
         await session.commit()
+
+    async def get_message(
+        self,
+        session: AsyncSession,
+        *,
+        session_id: uuid.UUID,
+        message_id: uuid.UUID,
+    ) -> models.ChatSessionMessage | None:
+        stmt = (
+            select(models.ChatSessionMessage)
+            .options(selectinload(models.ChatSessionMessage.feedback))
+            .where(
+                models.ChatSessionMessage.id == message_id,
+                models.ChatSessionMessage.session_id == session_id,
+            )
+        )
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def set_feedback(
+        self,
+        session: AsyncSession,
+        *,
+        message: models.ChatSessionMessage,
+        rating: models.FeedbackRating,
+    ) -> models.ChatMessageFeedback:
+        feedback = message.feedback
+        if feedback is None:
+            feedback = models.ChatMessageFeedback(
+                message_id=message.id,
+                rating=rating,
+            )
+            session.add(feedback)
+        else:
+            feedback.rating = rating
+            feedback.updated_at = datetime.utcnow()
+        await session.commit()
+        await session.refresh(feedback)
+        return feedback
 
     def _json_safe(self, value: Any) -> Any:
         if value is None:
