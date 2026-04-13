@@ -72,25 +72,3 @@ class MemoryService:
                 for row in rows
             ]
             return snippets
-
-    async def log_interaction(
-        self,
-        session: AsyncSession,
-        *,
-        session_id: uuid.UUID | None,
-        workflow: str,
-        input_summary: str,
-        output_summary: str,
-        trace_id: str | None,
-    ) -> models.InteractionRun:
-        run = models.InteractionRun(
-            user_id=session_id,
-            workflow=workflow,
-            input_summary=input_summary[:1000],
-            output_summary=output_summary[:2000],
-            trace_id=trace_id,
-        )
-        session.add(run)
-        await session.commit()
-        await session.refresh(run)
-        return run
