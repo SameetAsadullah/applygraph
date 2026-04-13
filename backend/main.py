@@ -17,10 +17,8 @@ from backend.services.outreach import OutreachService
 from backend.services.resume import ResumeTailorService
 from backend.telemetry.metrics import setup_metrics
 from backend.telemetry.tracing import setup_tracing
-from backend.tools.job_parser import JobParserTool
 from backend.tools.memory_retriever import MemoryRetrievalTool
 from backend.tools.outreach_drafter import OutreachDraftTool
-from backend.tools.profile_reader import ProfileReaderTool
 from backend.workflows.job_copilot_graph import WorkflowOrchestrator, WorkflowServices
 
 
@@ -30,8 +28,6 @@ def _build_orchestrator(settings: Settings) -> WorkflowOrchestrator:
     llm_service = LLMService(settings)
     services = WorkflowServices(
         chat_planner=ChatPlannerService(llm_service),
-        job_parser=JobParserTool(),
-        profile_reader=ProfileReaderTool(),
         memory_retriever=MemoryRetrievalTool(memory_service),
         job_analysis=JobAnalysisService(llm_service),
         resume_tailor=ResumeTailorService(llm_service),

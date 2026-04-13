@@ -6,12 +6,9 @@
   },
   "expected": {
     "request_type": "tailor_resume",
-    "required_output_keys": [
-      "tailored_bullets",
-      "rationale"
-    ],
+    "required_output_keys": ["response"],
     "required_terms": ["apis"],
     "forbidden_terms": ["sourdough"]
   },
-  "rubric": "The response should route to tailor_resume, return at least one improved resume bullet, and explain the rationale without drifting off-topic."
+  "rubric": "The response should route to tailor_resume and return a directly useful resume-tailoring answer without drifting off-topic."
 }

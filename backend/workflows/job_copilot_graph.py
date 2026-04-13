@@ -15,10 +15,8 @@ from backend.services.job_analysis import JobAnalysisService
 from backend.services.memory import MemoryService
 from backend.services.resume import ResumeTailorService
 from backend.services.llm import LLMService
-from backend.tools.job_parser import JobParserTool
 from backend.tools.memory_retriever import MemoryRetrievalTool
 from backend.tools.outreach_drafter import OutreachDraftTool
-from backend.tools.profile_reader import ProfileReaderTool
 from backend.telemetry.metrics import (
     increment_workflow_counter,
     record_guardrail_rejection,
@@ -29,7 +27,6 @@ from backend.workflows.state import RequestType, WorkflowState
 
 WORKFLOW_STAGE_ORDER = [
     "prepare_request",
-    "parse_input",
     "classify_request",
     "retrieve_memory",
     "generate_output",
@@ -40,7 +37,6 @@ WORKFLOW_STAGE_ORDER = [
 
 WORKFLOW_STAGE_MESSAGES = {
     "prepare_request": "Routing request",
-    "parse_input": "Parsing job and resume context",
     "classify_request": "Confirming workflow",
     "retrieve_memory": "Retrieving saved context",
     "generate_output": "Generating response",
@@ -53,8 +49,6 @@ WORKFLOW_STAGE_MESSAGES = {
 @dataclass
 class WorkflowServices:
     chat_planner: ChatPlannerService
-    job_parser: JobParserTool
-    profile_reader: ProfileReaderTool
     memory_retriever: MemoryRetrievalTool
     job_analysis: JobAnalysisService
     resume_tailor: ResumeTailorService
@@ -103,16 +97,6 @@ def build_workflow(services: WorkflowServices):
             updates["memory_payload"] = plan.memory_payload
         return updates
 
-    async def parse_input(state: WorkflowState) -> dict[str, Any]:
-        request_type = state.get("request_type")
-        if request_type == RequestType.REJECTED:
-            return {"parsed_job": {}, "parsed_profile": {}}
-        job_description = state.get("job_description", "")
-        profile_text = state.get("candidate_profile")
-        parsed_job = await services.job_parser(job_description=job_description)
-        parsed_profile = await services.profile_reader(profile_text=profile_text)
-        return {"parsed_job": parsed_job, "parsed_profile": parsed_profile}
-
     async def classify_request(state: WorkflowState) -> dict[str, Any]:
         request_type = state.get("request_type")
         if request_type is None:
@@ -143,8 +127,6 @@ def build_workflow(services: WorkflowServices):
         if request_type == RequestType.ANALYZE_JOB:
             response: JobAnalysisResponse = await services.job_analysis.analyze(
                 job_description=state.get("job_description", ""),
-                job_skills=state.get("parsed_job", {}).get("skills", []),
-                profile_skills=state.get("parsed_profile", {}).get("skills", []),
                 candidate_profile=state.get("candidate_profile"),
                 retrieved_memory=retrieved_memory,
                 user_request=state.get("chat_message"),
@@ -198,14 +180,17 @@ def build_workflow(services: WorkflowServices):
                 (
                     MemoryType.JOB_DESCRIPTION,
                     state.get("job_description", ""),
-                    {"company": state.get("company_name"), "skills": state.get("parsed_job", {}).get("skills", [])},
+                    {
+                        "company": state.get("company_name"),
+                        "analysis_preview": state.get("output", {}).get("response", "")[:200],
+                    },
                 )
             )
         elif request_type == RequestType.TAILOR_RESUME:
             payloads.append(
                 (
                     MemoryType.RESUME_BULLETS,
-                    "\n".join(state.get("output", {}).get("tailored_bullets", [])),
+                    state.get("output", {}).get("response", ""),
                     {"job_description": state.get("job_description")},
                 )
             )
@@ -262,7 +247,6 @@ def build_workflow(services: WorkflowServices):
         return state
 
     graph.add_node("prepare_request", prepare_request)
-    graph.add_node("parse_input", parse_input)
     graph.add_node("classify_request", classify_request)
     graph.add_node("retrieve_memory", retrieve_memory)
     graph.add_node("generate_output", generate_output)
@@ -271,8 +255,7 @@ def build_workflow(services: WorkflowServices):
     graph.add_node("return_result", return_result)
 
     graph.set_entry_point("prepare_request")
-    graph.add_edge("prepare_request", "parse_input")
-    graph.add_edge("parse_input", "classify_request")
+    graph.add_edge("prepare_request", "classify_request")
     graph.add_edge("classify_request", "retrieve_memory")
     graph.add_edge("retrieve_memory", "generate_output")
     graph.add_edge("generate_output", "review_output")
@@ -354,12 +337,6 @@ class WorkflowOrchestrator:
             if payload.get("guardrail_reason"):
                 meta["guardrail_reason"] = payload["guardrail_reason"]
             return meta
-
-        if stage_name == "parse_input":
-            return {
-                "job_skill_count": len(payload.get("parsed_job", {}).get("skills", [])),
-                "profile_skill_count": len(payload.get("parsed_profile", {}).get("skills", [])),
-            }
 
         if stage_name == "classify_request":
             request_type = payload.get("request_type")

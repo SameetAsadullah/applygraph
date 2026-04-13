@@ -38,8 +38,6 @@ class WorkflowState(TypedDict, total=False):
 
     db_session: AsyncSession
 
-    parsed_job: dict[str, Any]
-    parsed_profile: dict[str, Any]
     retrieved_memory: list[MemorySnippet]
     output: dict[str, Any]
     errors: list[str]

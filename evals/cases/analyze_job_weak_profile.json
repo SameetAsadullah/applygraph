@@ -6,7 +6,7 @@
   },
   "expected": {
     "request_type": "analyze_job",
-    "required_output_keys": ["matched_skills", "missing_skills", "fit_summary", "resume_recommendations"],
+    "required_output_keys": ["response"],
     "required_terms": ["fastapi", "postgresql"],
     "forbidden_terms": ["baking"]
   },

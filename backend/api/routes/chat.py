@@ -52,10 +52,9 @@ def _assistant_message_text(payload: dict[str, Any]) -> str:
     if request_type == "rejected":
         return output.get("message", "")
     if request_type == "analyze_job":
-        return output.get("fit_summary", "")
+        return output.get("response", "")
     if request_type == "tailor_resume":
-        bullets = output.get("tailored_bullets", [])
-        return "\n".join(f"- {bullet}" for bullet in bullets[:3])
+        return output.get("response", "")
     if request_type == "draft_message":
         return output.get("email_version") or output.get("outreach_message") or ""
     return json.dumps(output, default=_json_default)

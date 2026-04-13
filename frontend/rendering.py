@@ -29,37 +29,9 @@ def render_backend_response(result: dict[str, Any]) -> None:
 
 
 def _render_analysis(output: dict[str, Any]) -> None:
-    fit_summary = output.get("fit_summary")
-    if fit_summary:
-        st.markdown(fit_summary)
-
-    matched = output.get("matched_skills", [])
-    missing = output.get("missing_skills", [])
-    recommendations = output.get("resume_recommendations", [])
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("**Matched Skills**")
-        if matched:
-            for item in matched:
-                st.markdown(f"- `{item}`")
-        else:
-            st.caption("No matched skills returned.")
-
-    with col2:
-        st.markdown("**Missing Skills**")
-        if missing:
-            for item in missing:
-                st.markdown(f"- `{item}`")
-        else:
-            st.caption("No missing skills returned.")
-
-    st.markdown("**Resume Recommendations**")
-    if recommendations:
-        for item in recommendations:
-            st.markdown(f"- {item}")
-    else:
-        st.caption("No recommendations returned.")
+    response = output.get("response")
+    if response:
+        st.markdown(response)
 
     memories = output.get("retrieved_memory", [])
     if memories:
@@ -68,16 +40,9 @@ def _render_analysis(output: dict[str, Any]) -> None:
 
 
 def _render_tailored_resume(output: dict[str, Any]) -> None:
-    bullets = output.get("tailored_bullets", [])
-    if bullets:
-        st.markdown("**Tailored Bullets**")
-        for bullet in bullets:
-            st.markdown(f"- {bullet}")
-
-    rationale = output.get("rationale")
-    if rationale:
-        st.markdown("**Rationale**")
-        st.write(rationale)
+    response = output.get("response")
+    if response:
+        st.markdown(response)
 
 
 def _render_outreach(output: dict[str, Any]) -> None:

@@ -17,16 +17,12 @@ class MemorySnippet(BaseModel):
 
 
 class JobAnalysisResponse(BaseModel):
-    matched_skills: list[str]
-    missing_skills: list[str]
-    fit_summary: str
-    resume_recommendations: list[str]
+    response: str
     retrieved_memory: list[MemorySnippet] = Field(default_factory=list)
 
 
 class ResumeTailorResponse(BaseModel):
-    tailored_bullets: list[str]
-    rationale: str
+    response: str
     retrieved_memory: list[MemorySnippet] = Field(default_factory=list)
 
 
