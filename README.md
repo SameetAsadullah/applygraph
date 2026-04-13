@@ -4,6 +4,10 @@ ApplyGraph is a session-based AI job copilot that helps a candidate compare thei
 
 It is built as a streaming FastAPI + LangGraph backend with a Streamlit chat UI, Postgres + pgvector memory, OpenTelemetry observability, a custom eval harness, and human feedback capture.
 
+![ApplyGraph chat UI](docs/assets/applygraph-chat-ui.png)
+
+Session-based Streamlit chat UI with per-thread resume context, workflow routing, and streamed AI responses.
+
 ## Why this project is strong
 
 This is not just a prompt wrapper. It includes the parts companies actually need to ship an AI product:
@@ -30,30 +34,7 @@ This is not just a prompt wrapper. It includes the parts companies actually need
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    U["User"] --> FE["Streamlit chat frontend"]
-    FE --> PDF["PDF extraction"]
-    FE --> API["FastAPI /chat/stream"]
-
-    API --> ORCH["LangGraph orchestrator"]
-    ORCH --> PLAN["Planner + guardrails"]
-    PLAN --> RETRIEVE["Memory retrieval"]
-    RETRIEVE --> GENERATE["Response generation"]
-    GENERATE --> SAVE["Persist memory"]
-    SAVE --> FINAL["Stream final output"]
-
-    GENERATE --> LLM["OpenAI / Gemini"]
-    RETRIEVE --> DB["Postgres + pgvector"]
-    SAVE --> DB
-
-    API --> SESS["Sessions + messages + feedback"]
-    SESS --> DB
-
-    ORCH --> OTEL["OpenTelemetry"]
-    OTEL --> PROM["Prometheus"]
-    PROM --> GRAF["Grafana"]
-```
+![ApplyGraph architecture](docs/assets/applygraph-architecture.png)
 
 ## Tech stack
 
@@ -211,7 +192,3 @@ Focused docs live in `/Users/sameet/Documents/Projects/applygraph/docs`:
 - `/Users/sameet/Documents/Projects/applygraph/docs/frontend.md`
 - `/Users/sameet/Documents/Projects/applygraph/docs/evals.md`
 - `/Users/sameet/Documents/Projects/applygraph/docs/observability.md`
-
-## Resume-ready summary
-
-Built a session-based AI job copilot using FastAPI, LangGraph, Streamlit, PostgreSQL + pgvector, and OpenAI/Gemini APIs to analyze job fit, tailor resume content, draft outreach, stream workflow progress, persist semantic memory, capture user feedback, and monitor production behavior with OpenTelemetry, Prometheus, and Grafana.
