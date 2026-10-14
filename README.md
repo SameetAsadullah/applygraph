@@ -68,6 +68,8 @@ The frontend sends only:
 
 The backend loads the session resume and memory automatically.
 
+For each message, the workflow uses that session context to route the request to job analysis, resume tailoring, outreach drafting, or a memory update. The stream reports workflow progress before the final response, so the UI can show the active stage without mixing state between sessions.
+
 ## Main endpoints
 
 - `GET /health`
@@ -185,10 +187,10 @@ Useful metrics include:
 
 ## Project docs
 
-Focused docs live in `/Users/sameet/Documents/Projects/applygraph/docs`:
+Focused docs are available in [`docs/`](docs/README.md):
 
-- `/Users/sameet/Documents/Projects/applygraph/docs/architecture.md`
-- `/Users/sameet/Documents/Projects/applygraph/docs/api.md`
-- `/Users/sameet/Documents/Projects/applygraph/docs/frontend.md`
-- `/Users/sameet/Documents/Projects/applygraph/docs/evals.md`
-- `/Users/sameet/Documents/Projects/applygraph/docs/observability.md`
+- [Architecture](docs/architecture.md)
+- [API](docs/api.md)
+- [Frontend](docs/frontend.md)
+- [Evaluations](docs/evals.md)
+- [Observability](docs/observability.md)
